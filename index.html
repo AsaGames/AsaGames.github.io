@@ -87,7 +87,7 @@ h1{
 .tagline{margin:22px auto 0;max-width:34rem;font-size:1.2rem;color:var(--ink-soft)}
 
 /* ---------- game cards ---------- */
-.games{display:grid;gap:28px;grid-template-columns:repeat(auto-fit, minmax(290px, 1fr));padding:12px 0 40px}
+.games{display:grid;gap:28px;grid-template-columns:repeat(auto-fit, minmax(290px, 1fr));padding:12px 0 48px}
 .card{
   background:var(--card);border:3px solid var(--card-edge);border-radius:22px;overflow:hidden;
   box-shadow:var(--shadow);display:flex;flex-direction:column;
@@ -165,13 +165,12 @@ footer a{color:var(--ink-soft)}
   <header>
     <div class="logo" aria-hidden="true"><span class="brick b1"></span><span class="brick b2"></span><span class="brick b3"></span></div>
     <h1>Asa's Games</h1>
-    <p class="tagline">Games dreamed up by Asa, age 6. They're free, they play in your web browser, and there's nothing to install.</p>
   </header>
 
   <main>
     <section class="games" aria-label="Games">
 
-      <article class="card featured">
+      <article class="card">
         <a class="shot" href="https://asagames.github.io/calvin/" aria-label="Play Calvin Boo Boo Ba Boo's Trip Home">
           <img src="images/calvin-eiffel-tower.jpg" alt="Calvin Boo Boo Ba Boo, a stuffed rockhopper penguin, standing on the top deck of the Eiffel Tower" width="1280" height="720">
           <span class="badge">New!</span>
@@ -220,35 +219,10 @@ footer a{color:var(--ink-soft)}
         </div>
       </article>
 
-      <article class="card soon">
-        <div class="shot"><div class="mystery" aria-hidden="true">?</div></div>
-        <div class="body">
-          <h2>Next game</h2>
-          <p>Asa is busy thinking up the next one. Check back soon!</p>
-        </div>
-      </article>
-
     </section>
 
-    <section class="about" aria-label="About">
-      <div>
-        <h3><span class="dot" style="background:var(--red)"></span>Made by a kid</h3>
-        <p>Asa comes up with the idea and the rules, then tests every version.</p>
-      </div>
-      <div>
-        <h3><span class="dot" style="background:var(--yellow)"></span>Play anywhere</h3>
-        <p>Best on a computer with a keyboard. Tablets work too.</p>
-      </div>
-      <div>
-        <h3><span class="dot" style="background:var(--blue)"></span>Safe for kids</h3>
-        <p>No ads, no accounts and no chat. Progress is saved only on your own device.</p>
-      </div>
-    </section>
   </main>
 
-  <footer>
-    <p>© 2026 Asa's Games · <a href="https://github.com/AsaGames">GitHub</a></p>
-  </footer>
 </div>
 </body>
 </html>
