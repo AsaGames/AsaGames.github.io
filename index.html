@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asa's Games</title>
+<meta name="description" content="Browser games dreamed up by Asa, age 6. Free to play, nothing to install.">
+<meta property="og:title" content="Asa's Games">
+<meta property="og:description" content="Browser games dreamed up by Asa, age 6. Free to play, nothing to install.">
+<meta property="og:image" content="images/titanic-sinking.jpg">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='10' width='28' height='18' rx='3' fill='%23e3242b'/%3E%3Crect x='6' y='4' width='8' height='8' rx='2' fill='%23e3242b'/%3E%3Crect x='18' y='4' width='8' height='8' rx='2' fill='%23e3242b'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fff8e7;
+  --bg-dots:#f3e6c4;
+  --ink:#1f2340;
+  --ink-soft:#575b78;
+  --card:#ffffff;
+  --card-edge:#e8dcbc;
+  --red:#e3242b;
+  --red-dark:#a8161c;
+  --yellow:#ffcd03;
+  --yellow-dark:#d9a400;
+  --blue:#0a6cd6;
+  --blue-dark:#06478f;
+  --green:#2f9e44;
+  --shadow:0 6px 0 rgba(31,35,64,.12), 0 14px 30px rgba(31,35,64,.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141833;
+    --bg-dots:#1d2246;
+    --ink:#f4f1e6;
+    --ink-soft:#b5b8d6;
+    --card:#20264d;
+    --card-edge:#2e3566;
+    --shadow:0 6px 0 rgba(0,0,0,.35), 0 14px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141833;
+  --bg-dots:#1d2246;
+  --ink:#f4f1e6;
+  --ink-soft:#b5b8d6;
+  --card:#20264d;
+  --card-edge:#2e3566;
+  --shadow:0 6px 0 rgba(0,0,0,.35), 0 14px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  font-family:'Fredoka', ui-rounded, 'Segoe UI', system-ui, sans-serif;
+  color:var(--ink);
+  background-color:var(--bg);
+  /* baseplate studs */
+  background-image:radial-gradient(circle at center, var(--bg-dots) 0 7px, transparent 8px);
+  background-size:28px 28px;
+  line-height:1.5;
+}
+a{color:inherit}
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px}
+
+/* ---------- header ---------- */
+header{padding:40px 0 28px;text-align:center}
+.logo{display:inline-flex;gap:6px;margin-bottom:18px}
+.brick{
+  position:relative;width:44px;height:30px;border-radius:5px;
+  box-shadow:inset 0 -5px 0 rgba(0,0,0,.18);
+}
+.brick::before,.brick::after{
+  content:"";position:absolute;top:-8px;width:14px;height:9px;border-radius:4px 4px 0 0;
+  background:inherit;box-shadow:inset 0 -2px 0 rgba(0,0,0,.12);
+}
+.brick::before{left:6px}.brick::after{right:6px}
+.b1{background:var(--red)}.b2{background:var(--yellow)}.b3{background:var(--blue)}
+h1{
+  margin:0;font-size:clamp(2.6rem, 9vw, 4.6rem);line-height:1;font-weight:700;letter-spacing:.5px;
+  color:var(--yellow);
+  -webkit-text-stroke:3px var(--ink);
+  paint-order:stroke fill;
+  text-shadow:0 6px 0 var(--ink);
+}
+.tagline{margin:22px auto 0;max-width:34rem;font-size:1.2rem;color:var(--ink-soft)}
+
+/* ---------- game cards ---------- */
+.games{display:grid;gap:28px;grid-template-columns:repeat(auto-fit, minmax(290px, 1fr));padding:12px 0 40px}
+.card{
+  background:var(--card);border:3px solid var(--card-edge);border-radius:22px;overflow:hidden;
+  box-shadow:var(--shadow);display:flex;flex-direction:column;
+}
+.card.featured{grid-column:1 / -1}
+.shot{position:relative;display:block;aspect-ratio:16/9;background:#1b1f45;overflow:hidden}
+.shot img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease}
+.card:hover .shot img{transform:scale(1.03)}
+.badge{
+  position:absolute;left:14px;top:14px;background:var(--yellow);color:#1f2340;font-weight:700;
+  padding:4px 12px;border-radius:999px;font-size:.9rem;box-shadow:0 3px 0 var(--yellow-dark);
+}
+.body{padding:22px 24px 26px;display:flex;flex-direction:column;gap:12px;flex:1}
+.card h2{margin:0;font-size:1.9rem;line-height:1.15}
+.card p{margin:0;color:var(--ink-soft);font-size:1.08rem}
+.chips{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0}
+.chips li{
+  background:var(--bg);border:2px solid var(--card-edge);border-radius:999px;padding:2px 12px;
+  font-size:.92rem;font-weight:500;
+}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:auto;padding-top:6px}
+.btn{
+  display:inline-flex;align-items:center;gap:10px;text-decoration:none;font-weight:700;font-size:1.25rem;
+  padding:12px 26px;border-radius:14px;background:var(--red);color:#fff;
+  box-shadow:0 5px 0 var(--red-dark);transition:transform .08s ease, box-shadow .08s ease;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 7px 0 var(--red-dark)}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--red-dark)}
+.btn:focus-visible,.link:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.btn svg{width:20px;height:20px}
+.link{align-self:center;font-weight:600;color:var(--blue);text-decoration:none;font-size:1.05rem}
+:root[data-theme="dark"] .link{color:#7cb7ff}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .link{color:#7cb7ff}}
+.link:hover{text-decoration:underline}
+
+/* featured card goes side by side on wide screens */
+@media (min-width: 820px){
+  .card.featured{flex-direction:row}
+  .card.featured .shot{flex:0 0 56%;aspect-ratio:auto;min-height:340px}
+  .card.featured .body{padding:30px 32px}
+}
+
+/* coming soon */
+.soon{border-style:dashed;box-shadow:none;background:transparent}
+.soon .shot{
+  background:repeating-linear-gradient(45deg, var(--card-edge) 0 14px, transparent 14px 28px);
+  display:grid;place-items:center;
+}
+.mystery{
+  width:96px;height:96px;border-radius:18px;background:var(--yellow);color:#1f2340;
+  display:grid;place-items:center;font-size:3.6rem;font-weight:700;
+  box-shadow:inset 0 -8px 0 rgba(0,0,0,.15), 0 6px 0 var(--yellow-dark);
+}
+
+/* ---------- about ---------- */
+.about{
+  display:grid;gap:20px;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+  margin:8px 0 48px;
+}
+.about div{background:var(--card);border:3px solid var(--card-edge);border-radius:18px;padding:18px 20px}
+.about h3{margin:0 0 4px;font-size:1.2rem}
+.about p{margin:0;color:var(--ink-soft)}
+.dot{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:8px;vertical-align:-1px}
+
+footer{text-align:center;padding:0 0 40px;color:var(--ink-soft);font-size:.95rem}
+footer a{color:var(--ink-soft)}
+
+@media (prefers-reduced-motion: reduce){
+  .shot img,.btn{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo" aria-hidden="true"><span class="brick b1"></span><span class="brick b2"></span><span class="brick b3"></span></div>
+    <h1>Asa's Games</h1>
+    <p class="tagline">Games dreamed up by Asa, age 6. They're free, they play in your web browser, and there's nothing to install.</p>
+  </header>
+
+  <main>
+    <section class="games" aria-label="Games">
+
+      <article class="card featured">
+        <a class="shot" href="https://asagames.github.io/Titanic-Game/" aria-label="Play The Titanic Game">
+          <img src="images/titanic-sinking.jpg" alt="A brick-built Titanic breaking in two at night, with lifeboats full of people in front" width="1280" height="720">
+          <span class="badge">New!</span>
+        </a>
+        <div class="body">
+          <h2>The Titanic Game</h2>
+          <p>The Titanic is about to hit an iceberg, and you're at the very bottom of the ship. Find the hidden key, unlock the lifeboat gate and get into a lifeboat before the water touches you. There are no points: you either survive or you don't.</p>
+          <ul class="chips" aria-label="What's inside">
+            <li>11 mini-games</li>
+            <li>10 levels</li>
+            <li>Rescue a puppy</li>
+            <li>Treasure dive</li>
+            <li>2 players</li>
+          </ul>
+          <div class="actions">
+            <a class="btn" href="https://asagames.github.io/Titanic-Game/">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3l12 7-12 7z" fill="currentColor"/></svg>
+              Play
+            </a>
+            <a class="link" href="https://github.com/AsaGames/Titanic-Game#readme">How to play</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="card soon">
+        <div class="shot"><div class="mystery" aria-hidden="true">?</div></div>
+        <div class="body">
+          <h2>Next game</h2>
+          <p>Asa is busy thinking up the next one. Check back soon!</p>
+        </div>
+      </article>
+
+    </section>
+
+    <section class="about" aria-label="About">
+      <div>
+        <h3><span class="dot" style="background:var(--red)"></span>Made by a kid</h3>
+        <p>Asa comes up with the idea and the rules, then tests every version.</p>
+      </div>
+      <div>
+        <h3><span class="dot" style="background:var(--yellow)"></span>Play anywhere</h3>
+        <p>Best on a computer with a keyboard. Tablets work too.</p>
+      </div>
+      <div>
+        <h3><span class="dot" style="background:var(--blue)"></span>Safe for kids</h3>
+        <p>No ads, no accounts and no chat. Progress is saved only on your own device.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2026 Asa's Games · <a href="https://github.com/AsaGames">GitHub</a></p>
+  </footer>
+</div>
+</body>
+</html>
