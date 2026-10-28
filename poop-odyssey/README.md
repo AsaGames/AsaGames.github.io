@@ -6,31 +6,35 @@ You're a poop sitting in the toilet... and then somebody flushes. Explore 7 king
 
 ## Controls
 
+You see the world through the poop's own eyes.
+
 | | Keyboard | Phone or tablet |
 |---|---|---|
-| Run | Arrow keys or WASD | Joystick |
+| Walk | Up and Down arrows (or W and S) | Joystick up and down |
+| Turn | Left and Right arrows (or A and D) | Joystick left and right |
+| Look around | Drag with the mouse | Drag the screen |
 | Jump | Space | JUMP |
 | Fart jump | Space again in the air | JUMP again in the air |
+| Climb a tall pipe | Keep pressing Space to fart your way up | Keep pressing JUMP |
 | Swim up | Hold Space | Hold JUMP |
 | Hop out of a ducky, bubble, roll or fish | Space again in the air (or X) | HOP OUT |
-| Turn the camera | Q and E | Drag the screen |
 | Closet | C | Shirt button |
 | Sound on/off | M | Speaker button |
 | Pause | Esc | Pause button |
 
-Walk into doors, shops and signs to use them. Jump on top of the green pipe to go to the next kingdom.
+Every kingdom is a maze of pipes joining little rooms. Pipes go sideways, straight up (fart your way up) and straight down (whee!). Walk into shops and costume doors to use them, and jump into the big green pipe to go to the next kingdom. Farting right next to a grumpy enemy knocks it out.
 
-The kingdoms are big rooms inside the plumbing, joined by warp pipes in the walls. Run into one and you slide through a twisty tube to the next room. Steer left and right to grab the corn on the way.
+When you wear a hat or glasses you can see them around the edge of your view: the brim of your cap, your sunglasses frames, your mustache.
 
 ## The 7 kingdoms
 
-1. **Toilet Bowl Kingdom.** Toilet paper monsters, falling plungers and a soap bubble that floats you way up high.
-2. **House Pipes Kingdom.** Lego bricks, drips, toy cars, a rubber ducky and a toilet paper roll that smashes cracked walls.
-3. **Stinky Sewer Kingdom.** A river of yucky green goo, grumpy poops and gators.
-4. **Fan & Grate Kingdom.** Spinning fans, sharp grates and big winds that lift you up.
+1. **Toilet Bowl Kingdom.** Toilet paper monsters, falling plungers, a pool and a soap bubble that floats you up to a high pipe.
+2. **House Pipes Kingdom.** Lego bricks, drips, toy cars, a rushing-water pipe for the rubber ducky, and a toilet paper roll that smashes cracked plugs.
+3. **Stinky Sewer Kingdom.** A pipe full of yucky green goo, grumpy poops, flies and gators.
+4. **Fan & Grate Kingdom.** Spinning fans inside the pipes, sharp grates and a big wind that blows you up.
 5. **Water Plant Kingdom.** Cleaning tanks with stirring paddles, smashing presses and cleaning robots.
-6. **Giant Ocean Pipe.** One huge round pipe where rushing water pushes you toward the light at the end. Watch out for crabs.
-7. **The Big Blue Ocean.** Swim with a fish past jellyfish and sharks to the beach.
+6. **Giant Ocean Pipe.** One huge round pipe where rushing water pushes you toward the end. Watch out for crabs.
+7. **The Big Blue Ocean.** Out of the pipes at last! Swim with a fish past jellyfish and sharks to the beach.
 
 ## Golden Corn, corn and outfits
 
@@ -43,4 +47,6 @@ Your Golden Corn, outfits and kingdoms are saved in your browser on this device.
 
 ## For grown-ups
 
-Plain HTML and JavaScript with [three.js](https://threejs.org/) r128, no build step. The kingdom layouts are made by `tools/levels.py`, which writes `levels.js` and checks that every kingdom can be finished. After changing a kingdom, run `python3 tools/levels.py`.
+Plain HTML and JavaScript with [three.js](https://threejs.org/) r128, no build step. The kingdom layouts are made by `tools/pipes.py`, which writes `levels.js` and checks that every kingdom can be finished. After changing a kingdom, run `python3 tools/pipes.py`.
+
+The farts, squishes, flushes and splashes are real recordings released as CC0 or public domain. `sounds/CREDITS.md` says where each one came from.
