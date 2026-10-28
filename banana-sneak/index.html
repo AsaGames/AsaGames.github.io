@@ -106,6 +106,40 @@ body{background:var(--sky);color:var(--ink);font-family:var(--body);overflow:hid
 .world-btns{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 .world-btns .small-btn{font-size:14px;padding:4px 10px 2px}
 @media (max-width:460px){.picker{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.hats{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.hat{width:48px;height:48px;padding:0;border:3px solid var(--ink);border-radius:14px;background:var(--paper);display:grid;place-items:center;cursor:pointer;box-shadow:0 3px 0 var(--ink)}
+.hat svg{width:32px;height:32px}
+.hat[aria-checked="true"]{background:var(--banana);transform:translateY(-3px);box-shadow:0 6px 0 var(--ink)}
+.hat:disabled{background:#e9e4f2;cursor:not-allowed;box-shadow:0 3px 0 #b9b0cc;border-color:#b9b0cc}
+.hat:focus-visible{outline:4px solid var(--grape);outline-offset:2px}
+#hatNote{text-transform:none;letter-spacing:0;font-family:var(--body);font-weight:800;color:var(--ink);opacity:.7}
+.play-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center}
+.book{max-width:860px;max-height:calc(100dvh - 32px);grid-template-rows:auto auto minmax(0,1fr);justify-items:stretch;padding:18px 18px 20px}
+.book-head{display:flex;align-items:center;gap:12px}
+.book-title{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(28px,6vw,40px);color:var(--banana);-webkit-text-stroke:2px var(--ink);paint-order:stroke fill;text-shadow:0 4px 0 var(--ink)}
+.book-count{flex:1;text-align:left;font-weight:800!important;font-variant-numeric:tabular-nums}
+.book-tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 8px}
+.tab{flex:none;font-family:var(--display);font-size:15px;color:var(--ink);background:var(--paper);border:3px solid var(--ink);border-radius:14px;padding:4px 10px 2px;cursor:pointer;white-space:nowrap}
+.tab small{font-family:var(--body);font-weight:800;font-size:12px;margin-left:4px;opacity:.75;font-variant-numeric:tabular-nums}
+.tab[aria-selected="true"]{background:var(--mint)}
+.tab:focus-visible{outline:4px solid var(--grape);outline-offset:2px}
+.stickers{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;overflow-y:auto;padding:4px 4px 8px;align-content:start}
+.sticker{margin:0;background:#fff;border:3px solid var(--ink);border-radius:18px;padding:6px 4px 6px;display:grid;justify-items:center;gap:2px;box-shadow:0 4px 0 var(--ink);transform:rotate(var(--tilt,0deg))}
+.sticker img{width:84px;height:84px;display:block}
+.sticker figcaption{font-weight:800;font-size:12px;line-height:1.15;text-align:center;overflow-wrap:anywhere}
+.sticker figcaption span{display:block;font-size:11px;color:var(--pink);font-variant-numeric:tabular-nums}
+.sticker.rare{background:#fff6c7;border-color:#c98a00;box-shadow:0 4px 0 #c98a00}
+.sticker.rare figcaption::before{content:"RARE";display:block;font-family:var(--display);font-size:11px;letter-spacing:1px;color:#c98a00}
+.sticker.boss{background:#ffe0ec;border-color:var(--pink);box-shadow:0 4px 0 var(--pink)}
+.sticker.boss figcaption::before{content:"BOSS";display:block;font-family:var(--display);font-size:11px;letter-spacing:1px;color:var(--pink)}
+.sticker.locked{background:#efeaf7;box-shadow:0 4px 0 #b9b0cc;border-color:#b9b0cc;transform:none}
+.sticker.locked img{filter:brightness(0);opacity:.18}
+.sticker.locked figcaption{color:#8a80a3}
+.got em{font-style:normal;font-family:var(--body);font-weight:800;font-size:13px;color:var(--paper);background:var(--pink);border-radius:999px;padding:1px 8px;margin-left:8px;vertical-align:3px}
+.bosspill{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 124px);z-index:5;pointer-events:none;max-width:calc(100% - 32px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-weight:800;font-size:14px;color:var(--paper);background:var(--danger);border:3px solid var(--ink);border-radius:999px;padding:2px 12px 0;box-shadow:0 3px 0 var(--ink)}
+.bosspill.done{background:var(--mint);color:var(--ink)}
+@media (max-width:560px){.bosspill{top:calc(env(safe-area-inset-top,0px) + 142px);font-size:12px}}
 .keys{margin:0;font-size:14px;font-weight:600;opacity:.8}
 .credit{margin:0;font-family:var(--display);font-size:16px;color:var(--grape)}
 .caught-title{font-family:var(--display);font-weight:400;font-size:64px;margin:0;color:var(--danger);-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:0 6px 0 var(--ink);transform:rotate(-4deg)}
@@ -159,6 +193,7 @@ body{background:var(--sky);color:var(--ink);font-family:var(--body);overflow:hid
   <div class="goal"><span id="goalText">Grow to 1.8 m to eat the WHOLE HOUSE!</span><div class="track"><i id="goalBar"></i></div></div>
 </div>
 <div class="got" id="got" hidden></div>
+<div class="bosspill" id="bossPill" hidden></div>
 <div id="toast" hidden></div>
 <div id="pow" hidden></div>
 
@@ -182,10 +217,23 @@ body{background:var(--sky);color:var(--ink);font-family:var(--body);overflow:hid
       <li><span><b>Hold still</b> while the cashier scans you.</span></li>
       <li><span>At their house, <b>roll up EVERYTHING.</b> Then the street, mountains, planets... the <b>whole universe!</b></span></li>
     </ol>
-    <button class="big-btn" id="playBtn">PLAY!</button>
+    <div class="pick-wrap"><p class="pick-label">Pick a hat <span id="hatNote"></span></p><div class="hats" id="hats" role="radiogroup" aria-label="Pick a hat"></div></div>
+    <div class="play-row"><button class="big-btn" id="playBtn">PLAY!</button><button class="small-btn book-btn" id="bookBtn">Sticker book</button></div>
     <div class="worlds" id="worlds" hidden><p class="pick-label">Or jump to a world you reached</p><div class="world-btns" id="worldBtns"></div></div>
     <p class="keys" id="keysHint">Move: arrow keys or WASD · Freeze: hold SPACE · Sound: M</p>
     <p class="credit">A game by Asa, age 6</p>
+  </div>
+</div>
+
+<div class="screen" id="bookScreen" hidden>
+  <div class="card book" role="dialog" aria-modal="true" aria-labelledby="bookTitle">
+    <div class="book-head">
+      <h2 class="book-title" id="bookTitle">Sticker Book</h2>
+      <p class="book-count" id="bookCount"></p>
+      <button class="iconbtn" id="bookClose" aria-label="Close the sticker book"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="book-tabs" id="bookTabs" role="tablist" aria-label="Worlds"></div>
+    <div class="stickers" id="stickers"></div>
   </div>
 </div>
 
@@ -229,7 +277,7 @@ body{background:var(--sky);color:var(--ink);font-family:var(--body);overflow:hid
       <div><b id="stChaos">0%</b><span>worlds eaten</span></div>
     </div>
     <p class="list" id="stList"></p>
-    <button class="big-btn" id="againBtn">Play again</button>
+    <div class="play-row"><button class="big-btn" id="againBtn">Play again</button><button class="small-btn book-btn" id="bookBtn2">Sticker book</button></div>
   </div>
 </div>
 
@@ -388,6 +436,37 @@ const FOODS = {
     eyes: [0, .9, .4], mouth: [0, .62, .3],
     piece: g => { part('cone', '#ff3b5c', .5, .6, .5, 0, .62, 0, g); part('cone', '#3fae4a', .32, .18, .32, 0, .3, 0, g); } },
 };
+Object.assign(FOODS.banana, { eyes: [0, .72, .36] });
+const TOPS = { banana: 1.12, apple: 1.06, pineapple: 1.62, watermelon: 1.02, broccoli: 1.32, strawberry: 1.42 };
+const HATB = {
+  party: g => { part('cone', '#ff5fa2', .45, .7, .45, 0, .35, 0, g); part('cyl', '#ffd93b', .47, .08, .47, 0, .08, 0, g); part('sph', '#3fe0b0', .16, .16, .16, 0, .74, 0, g); for (let i = 0; i < 4; i++) part('sph', '#ffffff', .06, .06, .06, Math.sin(i * 1.6) * .14, .25 + i * .1, Math.cos(i * 1.6) * .14 * (1 - i * .2), g); },
+  shades: g => { for (const x of [-.16, .16]) part('box', '#14101f', .27, .17, .04, x, 0, 0, g); part('box', '#14101f', .12, .04, .04, 0, .04, 0, g); part('box', '#ffffff', .06, .04, .045, -.2, .04, 0, g); },
+  cowboy: g => { part('cyl', '#a0662f', .95, .05, .95, 0, .03, 0, g); part('cyl', '#a0662f', .5, .36, .5, 0, .2, 0, g); part('cyl', '#5a3a1a', .52, .07, .52, 0, .08, 0, g); },
+  propeller: g => { part('sph', '#2fa8ff', .52, .32, .52, 0, .04, 0, g); part('box', '#ffd93b', .3, .04, .2, 0, .02, .26, g); part('cyl', '#888', .03, .2, .03, 0, .26, 0, g); const p = new THREE.Group(); p.position.y = .36; g.add(p); part('box', '#ff3b3b', .7, .02, .1, 0, 0, 0, p); part('box', '#3fe0b0', .1, .02, .7, 0, 0, 0, p); HAT_SPINS.push(p); },
+  chef: g => { part('cyl', '#ffffff', .42, .35, .42, 0, .17, 0, g); for (let i = 0; i < 5; i++) part('sph', '#ffffff', .3, .28, .3, Math.sin(i * 1.26) * .14, .45, Math.cos(i * 1.26) * .14, g); part('sph', '#ffffff', .32, .3, .32, 0, .52, 0, g); },
+  pirate: g => { part('box', '#14101f', .78, .22, .34, 0, .12, 0, g); part('cyl', '#14101f', .42, .26, .42, 0, .24, 0, g); part('sph', '#ffffff', .11, .11, .03, 0, .16, .18, g); part('box', '#ffd93b', .8, .03, .35, 0, .23, 0, g); },
+  antennae: g => { part('box', '#7ccf3a', .44, .05, .06, 0, 0, 0, g); for (const x of [-.16, .16]) { part('cyl', '#7ccf3a', .03, .45, .03, x * 1.25, .22, 0, g).rotation.z = -x * 1.5; glow('sph', '#b6f03c', .13, .13, .13, x * 2.1, .44, 0, g); } },
+  crown: g => { part('cyl', '#ffc21a', .5, .16, .5, 0, .08, 0, g); for (let i = 0; i < 5; i++) { const a = i / 5 * 6.28; part('cone', '#ffc21a', .1, .18, .1, Math.sin(a) * .22, .25, Math.cos(a) * .22, g); } part('sph', '#ff3b5c', .09, .09, .04, 0, .09, .25, g); },
+  halo: g => { glow('torus', '#fff36b', .7, .7, .7, 0, .32, 0, g).rotation.x = Math.PI / 2; glow('torus', '#ffffff', .72, .72, .3, 0, .32, 0, g, .5).rotation.x = Math.PI / 2; },
+};
+const HATS = [
+  { key: 'none', name: 'No hat' }, { key: 'party', name: 'Party hat' }, { key: 'shades', name: 'Sunglasses' }, { key: 'cowboy', name: 'Cowboy hat' },
+  { key: 'propeller', name: 'Propeller cap' }, { key: 'chef', name: "Chef's hat" }, { key: 'pirate', name: 'Pirate hat' },
+  { key: 'antennae', name: 'Alien antennas' }, { key: 'crown', name: 'Crown' }, { key: 'halo', name: 'Halo' },
+];
+const HAT_SPINS = [];
+let hatKey = 'none';
+try { const k = localStorage.getItem('bs-hat'); if (HATB[k]) hatKey = k; } catch (e) {}
+// onBall: the hat goes on the rolling ball's face instead of the food character
+function wearHat(parent, key, onBall) {
+  if (hatKey === 'none' || !HATB[hatKey]) return;
+  const h = new THREE.Group(); HATB[hatKey](h);
+  const f = FOODS[key];
+  if (hatKey === 'shades') { if (onBall) { h.position.set(0, .56, .98); h.scale.setScalar(2.1); } else h.position.set(f.eyes[0], f.eyes[1], f.eyes[2] + .14); }
+  else if (onBall) { h.position.set(0, .96, 0); h.scale.setScalar(1.5); }
+  else h.position.set(0, TOPS[key], 0);
+  parent.add(h);
+}
 let foodKey = 'banana';
 try { const k = localStorage.getItem('bs-food'); if (FOODS[k]) foodKey = k; } catch (e) {}
 let F = FOODS[foodKey];
@@ -404,6 +483,9 @@ function foodPiece(parent) {
   const g = new THREE.Group(); F.piece(g); parent.add(g); return g;
 }
 function makeFood(key, alive) {
+  const r = makeFoodBase(key, alive); if (alive) wearHat(r.userData.body, key, false); return r;
+}
+function makeFoodBase(key, alive) {
   if (key === 'banana') return makeBunch(alive);
   const f = FOODS[key], root = new THREE.Group(), body = new THREE.Group(); root.add(body); body.position.y = 0.42;
   f.body(body);
@@ -552,7 +634,7 @@ addEventListener('keydown', e => {
   keys[e.code] = true;
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
   if (e.code === 'KeyM' && !e.repeat) toggleMute();
-  if ((e.code === 'Enter' || e.code === 'Space') && state === 'title') { e.preventDefault(); startGame(); }
+  if ((e.code === 'Enter' || e.code === 'Space') && state === 'title' && $('#bookScreen').hidden && !e.target.closest?.('button')) { e.preventDefault(); startGame(); }
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; touchFreeze = false; joy.x = joy.y = 0; });
@@ -1275,6 +1357,23 @@ Object.assign(UB, {
   whitedwarf: g => { glow('sph', '#ffffff', 1.2, 1.2, 1.2, 0, 1, 0, g); glow('sph', '#dff6ff', 1.8, 1.8, 1.8, 0, 1, 0, g, .35); },
   supergiant: g => { glow('sph', '#ff3b3b', 1.9, 1.9, 1.9, 0, 1, 0, g); glow('sph', '#ff8a00', 2.4, 2.4, 2.4, 0, 1, 0, g, .25); glow('sph', '#ffd93b', 1.2, 1.2, 1.2, .3, 1.3, .6, g, .5); },
 });
+UB.squid = g => { const c = '#b04dff'; part('sph', c, 1.1, 1.4, 1.1, 0, 1.6, 0, g); eye(g, -.22, 1.6, .5, .32); eye(g, .22, 1.6, .5, .32); for (let i = 0; i < 8; i++) { const a = i / 8 * 6.28, t = part('cyl', c, .14, 1.1, .14, Math.sin(a) * .42, .55, Math.cos(a) * .42, g); t.rotation.set(Math.cos(a) * .35, 0, -Math.sin(a) * .35); } };
+UB.kraken = g => { UB.squid(g); for (let i = 0; i < 12; i++) glow('sph', pick(['#9fe6ff', '#ff9ecf', '#fff36b']), .08, .08, .08, rand(-.5, .5), rand(1.2, 2.2), .48, g); };
+UB.cosmiccat = g => { buildCat(g); for (let i = 0; i < 14; i++) glow('sph', pick(['#ffffff', '#fff36b', '#9fe6ff']), .06, .06, .06, rand(-.25, .25), rand(.3, .9), rand(-.4, .6), g); };
+const BOSSES = {
+  house: { name: 'Giant Grandma', build: g => { person(g, { hair: '#e6e6e6', glasses: true, bow: '#ff5fa2', shirt: '#b39cff' }); g.children[0].scale.setScalar(.45); }, kind: 'person', y: 1.4,
+    lines: ['Come here and give Grandma a HUG!', 'Who is a cute little banana?', 'Have you eaten? You look HUNGRY.'] },
+  store: { name: 'The Store Manager', build: g => { person(g, { shirt: '#2fbf71', hat: '#ff3b3b', glasses: true }); g.children[0].scale.setScalar(.45); }, kind: 'person', y: 1.4,
+    lines: ['NO ROLLING IN MY STORE!', 'Cleanup on aisle EVERYWHERE!', 'You did not PAY for those!'] },
+  street: { name: 'Biscuit the Giant Dog', build: UB.dog, kind: 'dog', y: 2.1, lines: ['WOOF! (I want to PLAY!)', '*GIANT SNIFF*', 'WOOF WOOF! (Is that a ball?!)'] },
+  town: { name: 'Mega Kitty', build: UB.cat, kind: 'cat', y: 1.9, lines: ['MEOW. (I am the queen of this town.)', '*knocks a bus off a table*', 'Mrrrow! (Chase me!)'] },
+  mountains: { name: 'The Yeti', build: g => { person(g, { skin: '#dff6ff', hair: '#ffffff', shirt: '#f4f7fb', pants: '#e6f2ff' }); g.children[0].scale.setScalar(.45); }, kind: 'person', y: 1.4,
+    lines: ['RAAAWR! Snowball time!', 'This is MY mountain!', 'Yeti want banana smoothie!'] },
+  world: { name: 'The Giant Squid', build: UB.squid, kind: 'whale', y: 2.6, lines: ['Blub blub! Eight arms for hugging!', 'INK ATTACK!', 'Blub! (You look tasty.)'] },
+  space: { name: 'The Alien Mothership', build: UB.ufo, kind: 'alien', y: 2.2, lines: ['WE HAVE COME FOR YOUR BANANAS.', 'Beam it up! BEAM IT UP!', 'Resistance is... fruity.'] },
+  galaxy: { name: 'The Space Kraken', build: UB.kraken, kind: 'whale', y: 2.6, lines: ['SPACE TENTACLES!', 'I eat stars for breakfast!', 'Blub... in SPACE.'] },
+  universe: { name: 'The Cosmic Cat', build: UB.cosmiccat, kind: 'cat', y: 1.9, lines: ['I knock planets off tables.', 'MEOW. The universe is MY box.', '*purrs in outer space*'] },
+};
 const EXTRA = {
   street: [U('stroller', .7, 5, UB.stroller), U('doghouse', 1.1, 5, UB.doghouse), U('hot dog cart', 1.4, 4, UB.hotdog), U('pickup truck', 2.6, 5, UB.pickup, { mover: 'car', y: 1.6, walk: 1.4, run: 2.8 }), U('garage', 3.8, 4, UB.garage), U('fire truck', 4.8, 2, UB.firetruck, { mover: 'car', y: 1.8, walk: 1, run: 2.2 })],
   town: [U('food truck', .35, 12, UB.icecream, { mover: 'car', y: 1.6, walk: 4, run: 8 }), U('little shop', [.8, 1], 14, UB.shop), U('pizza place', 1.2, 6, UB.shop), U('train', 1.5, 2, UB.train, { mover: 'car', y: 1.2, walk: 3, run: 6 }), U('library', 1.4, 4, UB.church), U('fire station', 1.6, 3, UB.garage), U('shopping mall', 3.6, 3, UB.mall), U('hotel', [2.6, 3.2], 5, UB.hotel)],
@@ -1362,6 +1461,14 @@ function groundSpace(cols) {
 
 /* rolling: shared by every stage */
 let H = null, B = null, BALL = null, stageIx = 0, trans = null;
+let BOOK = {};
+try { BOOK = JSON.parse(localStorage.getItem('bs-book') || '{}') || {}; } catch (e) { BOOK = {}; }
+function addSticker(world, name) {
+  const k = world + ':' + name, isNew = !BOOK[k];
+  BOOK[k] = (BOOK[k] || 0) + 1;
+  try { localStorage.setItem('bs-book', JSON.stringify(BOOK)); } catch (e) {}
+  return isNew;
+}
 const SPACEY = ['space', 'galaxy', 'universe'];
 const totals = { eaten: 0, big: [] };
 function makeBall() {
@@ -1374,6 +1481,7 @@ function makeBall() {
   }
   const face = new THREE.Group(); root.add(face);
   eye(face, -.34, .55, .78, .5); eye(face, .34, .55, .78, .5);
+  wearHat(face, foodKey, true);
   const shadow = new THREE.Mesh(new THREE.CircleGeometry(1, 24), new THREE.MeshBasicMaterial({ color: '#2b1650', transparent: true, opacity: .2, depthWrite: false }));
   shadow.rotation.x = -Math.PI / 2; scene.add(shadow);
   BALL = { root, roll, core, face, shadow, stuck: [] }; core.material = mat(F.core);
@@ -1385,6 +1493,14 @@ function makeThing(d, s) {
   const g = new THREE.Group(); d.build(g, s);
   if (d.unit) g.scale.setScalar(s); else g.scale.setScalar((d.scale || 1) * s / baseS(d));
   return g;
+}
+function spawnBoss(st) {
+  const b = BOSSES[st.key], s = st.rEnd * .5, L = st.L;
+  const d = { name: b.name, s, count: 1, build: b.build, unit: true, mover: b.kind, y: b.y, walk: 1, run: 4.5 / Math.max(1, s) * 1.2 };
+  const it = spawnThing(d, L * .55, -L * .55, s); it.boss = b;
+  const m = H.movers.find(o => o.it === it); m.boss = b; m.run = 3 + s * .6;
+  const mk = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX_EX, depthTest: false })); mk.position.y = b.y * .9 + .5; mk.scale.set(.7, .7, 1); mk.renderOrder = 10; it.g.add(mk);
+  H.boss = it;
 }
 function spawnThing(d, x, z, sz) {
   const s = sz || pickSize(d), g = makeThing(d, s);
@@ -1414,6 +1530,7 @@ function buildStage(ix) {
     }
     spawnThing(d, x, z); placed.push({ x, z, s });
   }
+  if (BOSSES[st.key]) spawnBoss(st);
   if (!BALL) makeBall();
   BALL.shadow.visible = !SPACEY.includes(st.key);
   B = B || {}; Object.assign(B, { x: 0, z: 0, vx: 0, vz: 0, r: st.r0, vr: st.r0, face: Math.PI });
@@ -1433,14 +1550,19 @@ function takeItem(it) {
   B.r += .16 * it.s;
   burst(it.x, Math.min(it.s, B.r), it.z, B.r);
   H.counts[it.name] = (H.counts[it.name] || 0) + 1;
+  const isNew = addSticker(H.st.key, it.name);
   if (it.s >= H.st.r0 * 3 || it.name[0] === it.name[0].toUpperCase() && it.name[0] !== it.name[0].toLowerCase()) totals.big.push(it.name);
-  const got = $('#got'); got.innerHTML = `<small>ROLLED UP</small>${it.name.toUpperCase()}`; got.classList.remove('pop'); void got.offsetWidth; got.classList.add('pop');
+  const got = $('#got'); got.innerHTML = `<small>ROLLED UP</small>${it.name.toUpperCase()}${isNew ? '<em>NEW STICKER!</em>' : ''}`; got.classList.remove('pop'); void got.offsetWidth; got.classList.add('pop');
   if (it.s > B.r * .6) SFX.slurp(clamp(1.4 - it.s / B.r, .5, 1.2)); else SFX.pop(clamp(1.6 - it.s / B.r, .8, 1.5));
   const m = H.movers.find(o => o.it === it);
   if (m) {
     const e = KINDS[m.kind].eat;
     if (e && SFX[e]) SFX[e](1);
     if (m.kind === 'person' || m.kind === 'astro' || m.kind === 'alien') say(BALL.root, `${it.name}: "AAAAAH!"`, 2, B.r + 1);
+  }
+  if (it.boss) {
+    H.boss = null; SFX.fanfare(); toast(`BOSS EATEN!<small>${it.name}</small>`, 2);
+    $('#bossPill').classList.add('done'); $('#bossPill').textContent = sub(`You ate ${it.name}!`);
   }
   if (B.r >= H.st.rEnd) startTransition();
 }
@@ -1476,7 +1598,7 @@ function updateRoll(dt) {
   const damp = Math.pow(inp.x || inp.z ? .4 : .15, dt); B.vx *= damp; B.vz *= damp;
   let sp = Math.hypot(B.vx, B.vz); if (sp > maxV) { B.vx *= maxV / sp; B.vz *= maxV / sp; sp = maxV; }
   B.x += B.vx * dt; B.z += B.vz * dt;
-  const b = H.bounds; H.bonkT -= dt;
+  const b = H.bounds; H.bonkT -= dt; H.hitT = (H.hitT || 0) - dt;
   const wall = (hit) => { if (hit && sp > 3.5 && H.bonkT <= 0) { SFX.bonk(); H.bonkT = .35; } };
   if (B.x < b.x0 + B.r) { B.x = b.x0 + B.r; wall(B.vx < -1); B.vx *= -.4; }
   if (B.x > b.x1 - B.r) { B.x = b.x1 - B.r; wall(B.vx > 1); B.vx *= -.4; }
@@ -1488,7 +1610,10 @@ function updateRoll(dt) {
     const K = KINDS[m.kind];
     const dx = it.x - B.x, dz = it.z - B.z, d = Math.hypot(dx, dz) || 1, edible = it.s <= B.r * .85;
     let tx, tz, spd; m.cool -= dt;
-    if (edible && d < 10 + B.r * 3) {
+    if (m.boss && !edible) {
+      tx = -dx / d; tz = -dz / d; spd = (5 + B.r * 2) * .45;
+      if (m.cool <= 0 && d < 14 + B.r * 4) { m.cool = 5; say(it.g, pick(m.boss.lines), 2.2, m.y); SFX.huh(); }
+    } else if (edible && d < 10 + B.r * 3) {
       tx = dx / d; tz = dz / d; spd = m.run;
       if (m.cool <= 0 && K.scared.length && d < 6 + B.r * 3) { m.cool = 4; say(it.g, pick(K.scared), 1.6, m.y); if (K.snd) SFX[K.snd](); }
     } else {
@@ -1514,6 +1639,7 @@ function updateRoll(dt) {
     const dx = B.x - it.x, dz = B.z - it.z, d = Math.hypot(dx, dz), reach = B.r + it.s * .55;
     if (d >= reach) continue;
     if (it.s <= B.r * .85) { takeItem(it); if (trans) return; continue; }
+    if (it.boss) { bossHit(it, d > 1e-4 ? dx / d : 1, d > 1e-4 ? dz / d : 0, reach); continue; }
     const nx = d > 1e-4 ? dx / d : 1, nz = d > 1e-4 ? dz / d : 0;
     B.x = it.x + nx * reach; B.z = it.z + nz * reach;
     const vn = B.vx * nx + B.vz * nz;
@@ -1541,6 +1667,17 @@ function updateRoll(dt) {
   camera.lookAt(B.x, R * .5, B.z);
   if (shake > 0) { shake -= dt; camera.position.x += rand(-1, 1) * shake * R * .5; camera.position.y += rand(-1, 1) * shake * R * .5; }
   updateGoal();
+}
+// the boss bonks you away and knocks a few things off your ball
+function bossHit(it, nx, nz, reach) {
+  B.x = it.x + nx * reach; B.z = it.z + nz * reach;
+  const k = 7 + B.r * 3; B.vx = nx * k; B.vz = nz * k;
+  if (H.hitT > 0) return;
+  H.hitT = 1.4; shake = .5; SFX.bonk(); SFX.boing();
+  for (let i = 0; i < 3 && BALL.stuck.length; i++) BALL.roll.remove(BALL.stuck.pop());
+  burst(B.x, B.r * 1.4, B.z, B.r * .8);
+  B.r = Math.max(H.st.r0, B.r * .97);
+  toast('BONK!<small>The boss knocked stuff off you! Get bigger, then eat the boss.</small>', 1.6, 'danger');
 }
 function placeBall() {
   const R = B.vr || B.r;
@@ -1590,6 +1727,9 @@ function setStageHud() {
   $('#lvl').textContent = sub(`${stageIx + 1}/${STAGES.length} · ${st.name}`);
   $('#hint').innerHTML = sub(st.hint);
   $('#goalText').textContent = `Grow to ${sizeText(st.rEnd * 2 * st.U)} to eat ${st.eat}!`;
+  const bp = $('#bossPill'), bo = BOSSES[st.key];
+  bp.hidden = !bo; bp.classList.remove('done');
+  if (bo) bp.textContent = sub(`BOSS: ${bo.name}. Grow to ${sizeText(st.rEnd * .5 / .85 * 2 * st.U)} to eat it!`);
   updateGoal();
 }
 
@@ -1610,12 +1750,13 @@ function updateTransition(dt) {
     if (trans.t > 1.6) {
       BALL.root.rotation.y = 0;
       if (stageIx >= STAGES.length - 1) { trans = null; startFinale(); return; }
+      const newHat = eatenCount() < stageIx + 1 ? HATS[stageIx + 1] : null;
       const f = STAGES[stageIx + 1].r0 / B.r;
       for (const c of BALL.roll.children) if (c !== BALL.core) { c.position.multiplyScalar(f); c.scale.multiplyScalar(f); }
       while (BALL.stuck.length > 90) BALL.roll.remove(BALL.stuck.shift());
       buildStage(stageIx + 1); world.scale.setScalar(.01);
       setStageHud(); placeBall(); trans.phase = 1; trans.t = 0;
-      toast(`${H.st.name.toUpperCase()}<small>Keep eating!</small>`, 2.4);
+      toast(`${H.st.name.toUpperCase()}<small>${newHat ? `You unlocked a new hat: ${newHat.name}!` : 'Keep eating!'}</small>`, newHat ? 3 : 2.4);
       playSong(SPACEY.includes(H.st.key) ? 'space' : 'house');
     }
   } else {
@@ -1759,11 +1900,13 @@ function updateSpit(dt) {
   }
 }
 function winGame() {
+  const firstWin = eatenCount() < STAGES.length;
+  try { localStorage.setItem('bs-won', '1'); } catch (e) {}
   setState('end'); playSong(null); SFX.fanfare(); setTimeout(() => SFX.fanfare(), 500);
   $('#stSize').textContent = 'ALL';
   $('#pow').hidden = true; $('#stCount').textContent = totals.eaten; $('#stChaos').textContent = `${STAGES.length}/${STAGES.length}`;
   const best = [...new Set(totals.big)].slice(-6).reverse();
-  $('#stList').textContent = (best.length ? `Best snacks: ${best.join(', ')}. ` : '') + 'Then someone tried to eat YOU. Ptooey!';
+  $('#stList').textContent = (best.length ? `Best snacks: ${best.join(', ')}. ` : '') + 'Then someone tried to eat YOU. Ptooey!' + (firstWin ? ' You unlocked the Halo!' : '');
   setTimeout(() => $('#againBtn').focus(), 50);
 }
 /* ---------- flow ---------- */
@@ -1788,7 +1931,8 @@ function setState(s) {
   fBtn.hidden = !(isTouch && (s === 'store' || s === 'scan'));
   if (s !== 'store' && s !== 'roll') { joy.x = joy.y = 0; joy.id = null; knob.style.transform = ''; }
   if (!play) { $('#toast').hidden = true; toastT = 0; }
-  if (s === 'title') syncContinue();
+  if (s === 'title') { syncContinue(); renderHats(); }
+  if (s !== 'roll') $('#bossPill').hidden = true;
 }
 function startStore() {
   trans = null; Z = null; $('#pow').hidden = true; clearParts(); dropBall(); scene.background = new THREE.Color('#8fd8ff');
@@ -1841,7 +1985,100 @@ $('#worldBtns').addEventListener('click', e => {
   const b = e.target.closest('[data-world]'); if (!b) return;
   initAudio(); totals.eaten = 0; totals.big = []; startStage(+b.dataset.world);
 });
-renderPicker(); renderLogo();
+function eatenCount() { let won = false; try { won = localStorage.getItem('bs-won') === '1'; } catch (e) {} return won ? STAGES.length : Math.max(0, maxStage()); }
+const HAT_ICONS = {
+  none: '<circle cx="24" cy="24" r="13" fill="none" stroke="#2b1650" stroke-width="3.5"/><path d="M15 33L33 15" stroke="#2b1650" stroke-width="3.5" stroke-linecap="round"/>',
+  party: '<path d="M24 6L34 38H14z" fill="#ff5fa2" stroke="#2b1650" stroke-width="3" stroke-linejoin="round"/><circle cx="24" cy="6" r="4" fill="#3fe0b0" stroke="#2b1650" stroke-width="2"/><circle cx="21" cy="24" r="2" fill="#fff"/><circle cx="27" cy="31" r="2" fill="#fff"/>',
+  shades: '<rect x="6" y="18" width="15" height="11" rx="4" fill="#14101f"/><rect x="27" y="18" width="15" height="11" rx="4" fill="#14101f"/><path d="M21 21h6" stroke="#14101f" stroke-width="3"/><path d="M9 21l4 0" stroke="#fff" stroke-width="2"/>',
+  cowboy: '<ellipse cx="24" cy="32" rx="20" ry="6" fill="#a0662f" stroke="#2b1650" stroke-width="3"/><path d="M14 31c0-14 4-18 10-18s10 4 10 18z" fill="#a0662f" stroke="#2b1650" stroke-width="3"/><path d="M14 27h20" stroke="#5a3a1a" stroke-width="3"/>',
+  propeller: '<path d="M10 36a14 14 0 0 1 28 0z" fill="#2fa8ff" stroke="#2b1650" stroke-width="3"/><path d="M24 22v-8" stroke="#2b1650" stroke-width="3"/><path d="M10 12h28" stroke="#ff3b3b" stroke-width="4" stroke-linecap="round"/>',
+  chef: '<rect x="15" y="26" width="18" height="12" fill="#fff" stroke="#2b1650" stroke-width="3"/><path d="M15 27c-8 0-8-12 0-11 0-8 18-8 18 0 8-1 8 11 0 11z" fill="#fff" stroke="#2b1650" stroke-width="3" stroke-linejoin="round"/>',
+  pirate: '<path d="M4 30c8-14 32-14 40 0-8-4-32-4-40 0z" fill="#14101f" stroke="#2b1650" stroke-width="2"/><path d="M14 24c2-12 18-12 20 0z" fill="#14101f"/><circle cx="24" cy="23" r="3.5" fill="#fff"/>',
+  antennae: '<path d="M14 38l4-22M34 38l-4-22" stroke="#7ccf3a" stroke-width="3.5" stroke-linecap="round"/><circle cx="18" cy="12" r="5" fill="#b6f03c" stroke="#2b1650" stroke-width="2.5"/><circle cx="30" cy="12" r="5" fill="#b6f03c" stroke="#2b1650" stroke-width="2.5"/>',
+  crown: '<path d="M8 36V14l8 9 8-13 8 13 8-9v22z" fill="#ffc21a" stroke="#2b1650" stroke-width="3" stroke-linejoin="round"/><circle cx="24" cy="29" r="3" fill="#ff3b5c"/>',
+  halo: '<ellipse cx="24" cy="24" rx="17" ry="7" fill="none" stroke="#2b1650" stroke-width="7"/><ellipse cx="24" cy="24" rx="17" ry="7" fill="none" stroke="#fff36b" stroke-width="4"/>',
+  lock: '<rect x="13" y="22" width="22" height="17" rx="3" fill="#b9b0cc"/><path d="M17 22v-5a7 7 0 0 1 14 0v5" fill="none" stroke="#b9b0cc" stroke-width="4"/>',
+};
+function renderHats() {
+  const n = eatenCount();
+  $('#hats').innerHTML = HATS.map((h, i) => {
+    const open = i <= n, tip = open ? h.name : `Eat ${sub(STAGES[i - 1].name)} to unlock`;
+    return `<button class="hat" role="radio" aria-checked="${h.key === hatKey}" data-hat="${h.key}" ${open ? '' : 'disabled'} title="${tip}" aria-label="${tip}"><svg viewBox="0 0 48 48" aria-hidden="true">${HAT_ICONS[open ? h.key : 'lock']}</svg></button>`;
+  }).join('');
+  $('#hatNote').textContent = n < HATS.length - 1 ? `· eat worlds to unlock more (${n + 1}/${HATS.length})` : '· you unlocked them all!';
+}
+$('#hats').addEventListener('click', e => {
+  const b = e.target.closest('.hat'); if (!b || b.disabled) return;
+  hatKey = b.dataset.hat; try { localStorage.setItem('bs-hat', hatKey); } catch (e2) {}
+  initAudio(); SFX.pop(1.4); renderHats();
+  if (state === 'title') { buildStore(); setState('title'); }
+  $('#hats').querySelector(`[data-hat="${hatKey}"]`).focus();
+});
+
+/* sticker book */
+function bookEntries(st) {
+  const seen = new Set(), out = [];
+  for (const d of st.things) if (!seen.has(d.name)) { seen.add(d.name); out.push({ d, name: d.name, rare: d.count === 1 }); }
+  const bo = BOSSES[st.key]; if (bo) out.push({ d: { name: bo.name, s: 1, build: bo.build, unit: true }, name: bo.name, boss: true });
+  return out;
+}
+const THUMBS = {};
+let TR = null;
+function thumb(st, e) {
+  const key = st.key + ':' + e.name + ':' + foodKey;
+  if (THUMBS[key]) return THUMBS[key];
+  if (!TR) {
+    const r = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true }); r.setPixelRatio(1); r.setSize(168, 168);
+    const sc = new THREE.Scene(); sc.add(new THREE.HemisphereLight('#ffffff', '#ffcf9a', .95)); const l = new THREE.DirectionalLight('#ffffff', .6); l.position.set(3, 5, 4); sc.add(l);
+    TR = { r, sc, cam: new THREE.PerspectiveCamera(30, 1, .01, 2000) };
+  }
+  const g = makeThing(e.d, e.d.unit ? 1 : baseS(e.d)); g.rotation.y = .5; TR.sc.add(g);
+  const box = new THREE.Box3().setFromObject(g), c = box.getCenter(new V3()), z = Math.max(.01, box.getSize(new V3()).length());
+  TR.cam.position.set(c.x + z * .9, c.y + z * .7, c.z + z * 1.45); TR.cam.lookAt(c);
+  TR.r.render(TR.sc, TR.cam);
+  const url = TR.r.domElement.toDataURL('image/png'); TR.sc.remove(g);
+  return (THUMBS[key] = url);
+}
+let bookTab = 0, bookJob = 0, bookFrom = null;
+function bookTotals() {
+  let got = 0, all = 0;
+  for (const st of STAGES) for (const e of bookEntries(st)) { all++; if (BOOK[st.key + ':' + e.name]) got++; }
+  return [got, all];
+}
+function openBook(from) {
+  bookFrom = from; $('#bookScreen').hidden = false;
+  const [got, all] = bookTotals(); $('#bookCount').textContent = `${got} of ${all} stickers`;
+  bookTab = Math.max(0, Math.min(STAGES.length - 1, maxStage()));
+  renderBook(); $('#bookClose').focus();
+}
+function closeBook() { $('#bookScreen').hidden = true; bookJob++; if (bookFrom) bookFrom.focus(); }
+function renderBook() {
+  $('#bookTabs').innerHTML = STAGES.map((st, i) => {
+    const es = bookEntries(st), got = es.filter(e => BOOK[st.key + ':' + e.name]).length;
+    return `<button class="tab" role="tab" aria-selected="${i === bookTab}" data-tab="${i}">${sub(st.name)}<small>${got}/${es.length}</small></button>`;
+  }).join('');
+  const st = STAGES[bookTab], es = bookEntries(st), job = ++bookJob;
+  const blank = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+  $('#stickers').innerHTML = es.map((e, i) => {
+    const n = BOOK[st.key + ':' + e.name] || 0, cls = ['sticker', n ? '' : 'locked', e.boss ? 'boss' : e.rare ? 'rare' : ''].join(' ');
+    return `<figure class="${cls}" style="--tilt:${((i * 37) % 7) - 3}deg"><img src="${blank}" alt="" data-i="${i}"><figcaption>${n ? sub(e.name) : '???'}${n ? `<span>× ${n}</span>` : ''}</figcaption></figure>`;
+  }).join('');
+  const imgs = [...$('#stickers').querySelectorAll('img')];
+  let i = 0;
+  const step = () => {
+    if (job !== bookJob) return;
+    for (let k = 0; k < 4 && i < imgs.length; k++, i++) { try { imgs[i].src = thumb(st, es[i]); } catch (err) {} }
+    if (i < imgs.length) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+$('#bookTabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (!b) return; bookTab = +b.dataset.tab; renderBook(); $('#bookTabs').querySelector(`[data-tab="${bookTab}"]`).focus(); });
+$('#bookBtn').addEventListener('click', e => { initAudio(); openBook(e.currentTarget); });
+$('#bookBtn2').addEventListener('click', e => { initAudio(); openBook(e.currentTarget); });
+$('#bookClose').addEventListener('click', closeBook);
+addEventListener('keydown', e => { if (e.code === 'Escape' && !$('#bookScreen').hidden) closeBook(); });
+
+renderPicker(); renderLogo(); renderHats();
 function startGame() { if (state !== 'title') return; initAudio(); startStore(); }
 $('#playBtn').addEventListener('click', startGame);
 $('#retryBtn').addEventListener('click', () => { initAudio(); startStore(); });
@@ -1862,6 +2099,7 @@ function frame(t) {
   else if (state === 'ride') { rideT -= dt; if (rideT <= 0) startHouse(); }
   if (toastT > 0) { toastT -= dt; if (toastT <= 0) $('#toast').hidden = true; }
   updBubbles(dt); updParts(dt);
+  for (const sp of HAT_SPINS) sp.rotation.y += dt * 14;
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }

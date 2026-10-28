@@ -18,3 +18,11 @@ You're a bunch of bananas with legs (or an apple, a pineapple, a watermelon, bro
 | Sound on/off | M | Speaker button |
 
 Once you've reached a world, you can jump straight back to it from the title screen.
+
+## Bosses, stickers and hats
+
+- **Bosses.** Every world has a boss, like Giant Grandma, Biscuit the Giant Dog, the Yeti and the Cosmic Cat. While it's bigger than you, it chases you and bonks stuff off your ball. Grow big enough and you can eat it.
+- **Sticker book.** Everything you roll up goes in your sticker book. Rare things (only one in the world) and bosses get special stickers. Open it from the title screen.
+- **Hats.** Every world you eat unlocks a new hat: party hat, sunglasses, cowboy hat, propeller cap, chef's hat, pirate hat, alien antennas, crown and halo. Your hat stays on when you turn into a ball.
+
+Your stickers, hats and worlds are saved in your browser on this device.
