@@ -28,7 +28,7 @@ addEventListener('resize', resize); resize();
 scene.add(new THREE.HemisphereLight('#f2fbff', '#ffcf9a', 0.9));
 const sun = new THREE.DirectionalLight('#ffffff', 0.55); sun.position.set(8, 14, 10); scene.add(sun);
 let world = null;
-function newWorld() { if (world) scene.remove(world); world = new THREE.Group(); scene.add(world); clearFloaters(); }
+function newWorld() { camera.up.set(0, 1, 0); if (world) scene.remove(world); world = new THREE.Group(); scene.add(world); clearFloaters(); }
 
 // ------------------------------------------------------------------ outfits & kingdoms
 const OUTFITS = {
@@ -338,8 +338,8 @@ function startLevel(i) {
   for (const [x, z, v] of L.below) G.below[x + ',' + z] = v;
   G.time = 0;
   scene.background = new THREE.Color(th.sky);
-  scene.fog = new THREE.Fog(th.sky, 34, 120);
-  buildTerrain(); buildWater(); buildWalls(); buildDeco();
+  scene.fog = new THREE.Fog(th.sky, L.roof ? 40 : 34, L.roof ? 110 : 120);
+  buildTerrain(); buildWater(); buildWalls(); buildDeco(); buildTubes();
   for (const p of L.plats) addPlat(p);
   for (const o of L.objs) spawn(o);
   // the player
@@ -356,7 +356,7 @@ function startLevel(i) {
 function buildTerrain() {
   const th = G.th, pos = [], col = [], nor = [], uv = [];
   const cTop = new THREE.Color(th.top), cTop2 = new THREE.Color(th.top2), cSide = new THREE.Color(th.side), cFloor = new THREE.Color(th.floor);
-  const cSpike = new THREE.Color(th.side), cFan = new THREE.Color('#3a4152');
+  const cSpike = new THREE.Color(th.side), cFan = new THREE.Color('#3a4152'), cWall = new THREE.Color(th.wall || th.side);
   const c = new THREE.Color();
   const quad = (a, b, cc, d, n, c1, c2) => {
     for (const p of [a, b, cc, a, cc, d]) pos.push(p[0], p[1], p[2]);
@@ -373,6 +373,7 @@ function buildTerrain() {
     const h = rH(x, z), t = G.t[z][x];
     const x0 = x * CS, x1 = x0 + CS, z0 = z * CS, z1 = z0 + CS;
     if (t === 'w' || t === 'g') c.copy(cFloor);
+    else if (t === 'R') c.copy(cWall);
     else if (t === '^') c.copy(cSpike);
     else if (t === 'A') c.copy(cFan);
     else { c.copy((x + z) % 2 ? cTop : cTop2); if (h > 0.5) c.offsetHSL(0, 0, Math.min(0.06, h * 0.008)); }
@@ -383,6 +384,7 @@ function buildTerrain() {
       if (nh >= h) continue;
       const lo = new THREE.Color(th.side).multiplyScalar(0.72), hi = new THREE.Color(th.side);
       if (t === 'w' || t === 'g') { hi.copy(cFloor); lo.copy(cFloor).multiplyScalar(0.8); }
+      if (t === 'R') { hi.copy(cWall); lo.copy(cWall).multiplyScalar(0.85); }
       let a, b, cc, d;
       if (dx === 1) { a = [x1, h, z1]; b = [x1, nh, z1]; cc = [x1, nh, z0]; d = [x1, h, z0]; }
       else if (dx === -1) { a = [x0, h, z0]; b = [x0, nh, z0]; cc = [x0, nh, z1]; d = [x0, h, z1]; }
@@ -483,41 +485,79 @@ function buildWater() {
 }
 function buildWalls() {
   // a low toy-box rim around the kingdom, so the camera can always see over it
-  let maxH = 0; for (const r of G.h) for (const v of r) maxH = Math.max(maxH, v);
-  G.wallH = maxH + 2.5;
+  let maxH = 0; for (const r of G.h) for (const v of r) if (v < 39) maxH = Math.max(maxH, v);
+  G.wallH = G.L.roof || G.L.key === 'bigpipe' ? 1e3 : maxH + 2.5;
   const th = G.th; if (!th.wall) return;
-  const W = G.W * CS, D = G.D * CS, H = G.wallH, T = 2;
+  const W = G.W * CS, D = G.D * CS, T = 2;
+  if (G.L.key === 'bigpipe') { buildRoundPipe(); return; }
+  const H = G.L.roof ? G.L.ceil + 1 : G.wallH;
+  if (G.L.roof) buildCeiling();
   const m = A.mat(th.wall), tm = A.mat(th.trim);
   for (const [x, z, w, d] of [[W / 2, -T / 2, W + T * 2, T], [W / 2, D + T / 2, W + T * 2, T], [-T / 2, D / 2, T, D], [W + T / 2, D / 2, T, D]]) {
     const b = new THREE.Mesh(A.GEO.box, m); b.scale.set(w, H + 30, d); b.position.set(x, (H - 30) / 2, z); world.add(b);
-    const r = new THREE.Mesh(A.GEO.box, tm); r.scale.set(w + 0.3, 0.6, d + 0.3); r.position.set(x, H, z); world.add(r);
+    const r = new THREE.Mesh(A.GEO.box, tm); r.scale.set(w + 0.3, 0.6, d + 0.3); r.position.set(x, G.L.roof ? 0.3 : H, z); world.add(r);
   }
   const base = new THREE.Mesh(A.GEO.box, A.mat(th.side)); base.scale.set(W + 600, 1, D + 600); base.position.set(W / 2, -30, D / 2); world.add(base);
+}
+function buildCeiling() {
+  const W = G.W * CS, D = G.D * CS, y = G.L.ceil, th = G.th;
+  const tex = A.tileTex(G.L.key === 'sewer' ? 'bricks' : 'plain'); tex.repeat.set(G.W / 2, G.D / 2);
+  const roof = new THREE.Mesh(new THREE.PlaneGeometry(W + 8, D + 8), new THREE.MeshLambertMaterial({ color: new THREE.Color(th.wall).multiplyScalar(0.85), map: tex }));
+  roof.rotation.x = Math.PI / 2; roof.position.set(W / 2, y, D / 2); world.add(roof);
+  // ceiling lamps so the rooms feel cosy instead of dark
+  for (let z = 4; z < G.D; z += 7) for (let x = 4; x < G.W; x += 7) {
+    if (G.t[z][x] === 'R') continue;
+    const px = (x + 0.5) * CS, pz = (z + 0.5) * CS;
+    A.part('cyl', '#fff6c0', 1.6, 0.25, 1.6, px, y - 0.12, pz, world, { emissive: '#fff0a0', emissiveIntensity: 0.8 });
+    const gl = A.sprite(A.TEX.glow, 5, 5); gl.material.opacity = 0.55; gl.position.set(px, y - 0.6, pz); world.add(gl);
+  }
+  // big pipes running along the ceiling
+  const pc = G.L.key === 'toilet' ? '#c9d6e6' : G.L.key === 'plant' ? '#ffffff' : th.trim;
+  for (let i = 1; i < 4; i++) { const pp = A.part('cyl', pc, 1.1, D, 1.1, i * W / 4, y - 0.8, D / 2, world); pp.rotation.x = Math.PI / 2; }
+}
+function buildRoundPipe() {
+  const W = G.W * CS, D = G.D * CS, R = W / 2 + 4, cy = 4, th = G.th;
+  const tex = A.tileTex('plates'); tex.repeat.set(36, 30);
+  const tube = new THREE.Mesh(new THREE.CylinderGeometry(R, R, D + 30, 48, 1, true), new THREE.MeshLambertMaterial({ color: th.wall, map: tex, side: THREE.BackSide }));
+  tube.rotation.x = Math.PI / 2; tube.position.set(W / 2, cy, D / 2); world.add(tube);
+  for (let z = 4; z < D; z += 10) {
+    const rib = new THREE.Mesh(new THREE.TorusGeometry(R - 0.4, 0.7, 8, 48), A.mat(th.trim)); rib.position.set(W / 2, cy, z); world.add(rib);
+  }
+  const sea = A.mat(th.water);
+  for (const x of [-8, W + 8]) { const pl = new THREE.Mesh(new THREE.PlaneGeometry(16, D + 30), sea); pl.rotation.x = -Math.PI / 2; pl.position.set(x, -0.02, D / 2); world.add(pl); }
+  // the light at the end of the pipe is the ocean!
+  const end = new THREE.Mesh(new THREE.CircleGeometry(R, 48), new THREE.MeshBasicMaterial({ color: '#e6fbff' })); end.position.set(W / 2, cy, -14); world.add(end);
+  const back = new THREE.Mesh(new THREE.CircleGeometry(R, 48), A.mat(th.side)); back.rotation.y = Math.PI; back.position.set(W / 2, cy, D + 14); world.add(back);
+  for (let i = 0; i < 3; i++) { const l = A.part('cyl', '#fff6c0', 2, 0.3, 2, W / 2, cy + R - 0.6, 10 + i * 30, world, { emissive: '#fff0a0', emissiveIntensity: 0.8 }); }
+}
+function buildTubes() {
+  G.tubes = [];
+  for (const tb of G.L.tubes) {
+    const [dx, dz] = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] }[tb.dir];
+    const c = new THREE.Vector3((tb.x + 0.5) * CS, G.h[tb.z][tb.x], (tb.z + 0.5) * CS);
+    const m = A.makeTubeMouth();
+    m.position.set(c.x + dx * CS * 0.35, c.y + 1.25, c.z + dz * CS * 0.35);
+    m.rotation.y = Math.atan2(-dx, -dz);
+    world.add(m);
+    G.tubes.push({ id: tb.id, to: tb.to, c, out: new THREE.Vector3(-dx, 0, -dz) });
+  }
 }
 function buildDeco() {
   const key = G.L.key, W = G.W * CS, D = G.D * CS, H = G.L.ceil;
   const deco = new THREE.Group(); world.add(deco); G.deco = deco;
   const spinners = [];
   if (key === 'toilet') {
-    for (let i = 0; i < 9; i++) { const b = A.part('sph', '#e6f7ff', rand(0.8, 1.8), 0, 0, rand(4, W - 4), rand(H + 2, H + 8), rand(4, D - 4), deco, { transparent: true, opacity: 0.3 }); b.scale.y = b.scale.z = b.scale.x; G.ents.push({ k: 'floaty', m: b, y0: b.position.y, ph: rand(0, 6) }); }
-    const brush = new THREE.Group(); A.part('box', '#ff8fb1', 1, 14, 1, 0, 7, 0, brush); A.part('box', '#ffffff', 1.4, 3, 1.6, 0, 14.5, 0.6, brush); brush.position.set(W - 3, 0, D * 0.6); brush.rotation.z = 0.25; deco.add(brush);
+    for (let i = 0; i < 9; i++) { const b = A.part('sph', '#e6f7ff', rand(0.8, 1.8), 0, 0, rand(4, W - 4), rand(4, H - 2), rand(4, D - 4), deco, { transparent: true, opacity: 0.3 }); b.scale.y = b.scale.z = b.scale.x; G.ents.push({ k: 'floaty', m: b, y0: b.position.y, ph: rand(0, 6) }); }
+    const brush = new THREE.Group(); A.part('box', '#ff8fb1', 1, 9, 1, 0, 4.5, 0, brush); A.part('box', '#ffffff', 1.4, 2.4, 1.6, 0, 9.5, 0.6, brush); brush.position.set(W - 2, 0, D * 0.75); brush.rotation.z = 0.25; deco.add(brush);
     const soap = A.part('box', '#ffd6f0', 6, 2.4, 4, 4, 1.2, D - 5, deco); soap.rotation.y = 0.3;
     G.plats.push({ x0: 1, x1: 7, z0: D - 7, z1: D - 3, y0: 0, y1: 2.4, solid: true, deco: true });
-  } else if (key === 'pipes' || key === 'bigpipe') {
-    const c = key === 'pipes' ? '#c8743a' : '#6f7d74';
-    for (let i = 0; i < (key === 'pipes' ? 5 : 9); i++) {
-      const tor = new THREE.Mesh(new THREE.TorusGeometry(key === 'pipes' ? W / 2 + 1 : W / 2 + 2, 0.9, 10, 40, Math.PI), A.mat(c));
-      tor.position.set(W / 2, key === 'pipes' ? H - 2 : 0, (i + 0.5) * D / (key === 'pipes' ? 5 : 9)); deco.add(tor);
-    }
-    for (let i = 0; i < 6; i++) { const p = A.part('cyl', c, 1.4, H + 6, 1.4, i % 2 ? 1.2 : W - 1.2, H / 2, 6 + i * (D - 12) / 5, deco); }
+  } else if (key === 'pipes') {
+    for (let i = 0; i < 6; i++) { A.part('cyl', '#c8743a', 1.4, H, 1.4, i % 2 ? 0.8 : W - 0.8, H / 2, 6 + i * (D - 12) / 5, deco); }
   } else if (key === 'sewer') {
-    for (let i = 0; i < 6; i++) {
-      const tor = new THREE.Mesh(new THREE.TorusGeometry(W / 2 + 1, 1.2, 8, 30, Math.PI), A.mat('#6b5a48'));
-      tor.position.set(W / 2, H - 4, (i + 0.5) * D / 6); deco.add(tor);
-    }
+    for (let i = 0; i < 6; i++) { A.part('box', '#5a4a3a', 1.2, H, 1.2, i % 2 ? 0.6 : W - 0.6, H / 2, 6 + i * (D - 12) / 5, deco); }
   } else if (key === 'fans') {
     for (const [x, z, ry] of [[W / 2, 0.2, 0], [0.2, D / 2, Math.PI / 2], [W - 0.2, D / 2, -Math.PI / 2]]) {
-      const f = new THREE.Group(); f.position.set(x, H - 1, z); f.rotation.y = ry; deco.add(f);
+      const f = new THREE.Group(); f.position.set(x, H / 2, z); f.rotation.y = ry; f.scale.setScalar(Math.min(1, (H / 2 - 0.5) / 6.5)); deco.add(f);
       const ring = new THREE.Mesh(new THREE.TorusGeometry(6, 0.5, 8, 30), A.mat('#7b8496')); f.add(ring);
       const bl = new THREE.Group(); f.add(bl);
       for (let i = 0; i < 4; i++) { const b = A.part('box', '#c1cad9', 1.8, 5.6, 0.2, 0, 2.8, 0, null); const pv = new THREE.Group(); pv.rotation.z = i * Math.PI / 2; pv.add(b); bl.add(pv); }
@@ -830,9 +870,9 @@ function updatePlayer(dt) {
     }
     if (afloat && mv.mag > 0.2 && Math.random() < 0.3) G.parts.push(sparkP(p.x - mv.x, liquidTop, p.z - mv.z, c.t === 'g' ? '#b8ff7a' : '#e6f7ff'));
   } else if (p.mode === 'bubble') {
-    const target = p.y < G.L.ceil - 2 ? 2.4 : 0;
+    const target = p.y < G.L.ceil - 2 ? 3 : 0;
     p.vy = lerp(p.vy, target, Math.min(1, 2 * dt));
-    p.vx = lerp(p.vx, mv.x * 4.5, Math.min(1, 3 * dt)); p.vz = lerp(p.vz, mv.z * 4.5, Math.min(1, 3 * dt));
+    p.vx = lerp(p.vx, mv.x * 6, Math.min(1, 4 * dt)); p.vz = lerp(p.vz, mv.z * 6, Math.min(1, 4 * dt));
     if (p.jbuf > 0) { p.jbuf = 0; releaseCap(false); return; }
   } else if (p.mode === 'roll') {
     if (water) { releaseCap(false); floatText('Soggy!', new THREE.Vector3(p.x, p.y + 2, p.z), '#bfe3ff'); return; }
@@ -995,6 +1035,13 @@ let shake = 0;
 function updateLevel(dt) {
   G.time += dt;
   const p = P, T = G.time;
+  if (G.slide) {
+    updateSlide(dt); updateParts(dt);
+    if (toastT > 0 && (toastT -= dt) <= 0) $('#toast').hidden = true;
+    if (msgT > 0) msgT -= dt;
+    $('#msg').hidden = !(msgT > 0); if (msgT > 0) $('#msg').textContent = msgText;
+    return;
+  }
   updatePlayer(dt);
   // enemies
   for (const e of G.ents) {
@@ -1051,7 +1098,8 @@ function updateLevel(dt) {
   if (G.exit) {
     if (G.L.final ? Math.hypot(p.x - G.exit.p.x, p.z - G.exit.p.z) < 2.2 && Math.abs(p.y - G.exit.p.y) < 2 : p.onGround && p.supPlat === G.exit.plat) zone = { k: 'exit' };
   }
-  const zk = zone ? zone.k + (zone.d ? zone.d.id : '') : null;
+  for (const tb of G.tubes) if (Math.hypot(p.x - tb.c.x, p.z - tb.c.z) < 1.05 && Math.abs(p.y - tb.c.y) < 1.4) zone = { k: 'tube', tb };
+  const zk = zone ? zone.k + (zone.d ? zone.d.id : '') + (zone.tb ? zone.tb.id : '') : null;
   if (zk !== G.zone) { G.zone = zk; if (zone) useThing(zone); }
   let sign = null;
   for (const s of G.signs) if (Math.hypot(p.x - s.p.x, p.z - s.p.z) < 2.6 && Math.abs(p.y - s.p.y) < 3) sign = s;
@@ -1250,6 +1298,74 @@ function useThing(z) {
       say(`Costume door! Only a poop wearing the ${o.name} can come in. ${where}`, 5);
     }
   } else if (z.k === 'shop') openShop();
+  else if (z.k === 'tube') startSlide(z.tb);
+}
+// ------------------------------------------------------------------ sliding through a warp pipe
+function startSlide(tb) {
+  const p = P;
+  if (p.mode !== 'poop') releaseCap(false);
+  const pts = [];
+  const tw = rand(0, 6);
+  for (let i = 0; i < 9; i++) pts.push(new THREE.Vector3(Math.sin(i * 1.1 + tw) * (i && i < 8 ? 7 : 0), -300 - i * 2.2 + Math.cos(i * 0.8) * 2.5, -i * 9));
+  const curve = new THREE.CatmullRomCurve3(pts);
+  const R = 2.3, len = curve.getLength();
+  const tex = A.TEX.tube.clone(); tex.needsUpdate = true; tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(Math.round(len / 2.2), 1);
+  const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 200, R, 20, false), new THREE.MeshLambertMaterial({ map: tex, side: THREE.BackSide }));
+  world.add(mesh);
+  const corns = [];
+  for (let i = 0; i < 10; i++) {
+    const u = 0.12 + i * 0.08, ang = Math.sin(i * 1.7 + tw) * 1.3;
+    const m = A.makeCorn(); m.scale.setScalar(1.3); m.position.copy(slidePos(curve, u, ang, R - 0.55)); world.add(m);
+    corns.push({ u, ang, m });
+  }
+  G.slide = { curve, R, len, u: 0, ang: 0, mesh, corns, to: G.tubes.find(t => t.id === tb.to) };
+  p.sh.visible = false; p.vx = p.vy = p.vz = 0;
+  sfx('whoosh'); say('Wheee! Steer with the arrows to grab the corn!', 2.5);
+}
+function slideFrame(curve, u) {
+  const T = curve.getTangentAt(Math.min(u, 1));
+  const D = new THREE.Vector3(0, -1, 0).addScaledVector(T, T.y).normalize();
+  const Sd = new THREE.Vector3().crossVectors(T, D).normalize();
+  return { T, D, S: Sd, C: curve.getPointAt(Math.min(u, 1)) };
+}
+function slidePos(curve, u, ang, r) {
+  const f = slideFrame(curve, u);
+  return f.C.clone().addScaledVector(f.D, Math.cos(ang) * r).addScaledVector(f.S, Math.sin(ang) * r);
+}
+function updateSlide(dt) {
+  const s = G.slide, p = P;
+  const mv = moveInput();
+  s.u += 20 / s.len * dt;
+  s.ang -= mv.s * 3 * dt;
+  s.ang -= Math.sin(s.ang) * 1.6 * dt;
+  s.ang = clamp(s.ang, -2.7, 2.7);
+  const f = slideFrame(s.curve, s.u);
+  const pos = slidePos(s.curve, s.u, s.ang, s.R - 0.5);
+  const up = f.C.clone().sub(pos).normalize();
+  p.m.visible = true; p.m.position.copy(pos); p.m.up.copy(up); p.m.lookAt(pos.clone().add(f.T));
+  const sc = pScale() * 1.05; p.m.scale.setScalar(sc);
+  for (const c of s.corns) {
+    if (c.taken) continue;
+    c.m.rotation.y += dt * 4;
+    if (Math.abs(c.u - s.u) * s.len < 0.9 && Math.abs(wrapAng(c.ang - s.ang)) < 0.5) { c.taken = true; world.remove(c.m); gotCorn(c.m.position); }
+  }
+  camera.up.copy(f.D).negate();
+  camera.position.copy(f.C).addScaledVector(f.T, -4.2).addScaledVector(f.D, -0.6);
+  camera.lookAt(f.C.clone().addScaledVector(f.T, 3).addScaledVector(f.D, 0.8));
+  if (Math.random() < 0.3) G.parts.push(sparkP(pos.x, pos.y, pos.z, '#c9ffd0'));
+  if (s.u >= 1) endSlide();
+}
+function endSlide() {
+  const s = G.slide, p = P, to = s.to;
+  world.remove(s.mesh); for (const c of s.corns) if (!c.taken) world.remove(c.m);
+  G.slide = null;
+  camera.up.set(0, 1, 0); p.m.up.set(0, 1, 0); p.m.rotation.set(0, 0, 0);
+  p.x = to.c.x + to.out.x * 1.6; p.z = to.c.z + to.out.z * 1.6; p.y = to.c.y + 0.6;
+  p.vx = to.out.x * 5; p.vz = to.out.z * 5; p.vy = 8; p.canFart = true;
+  p.yaw = Math.atan2(to.out.x, to.out.z);
+  camYaw = Math.atan2(-to.out.x, -to.out.z);
+  G.zone = 'tube' + to.id;
+  sfx('fart'); fartPuff(p); placeCamera(1);
 }
 function finishLevel() {
   S.beaten[G.L.key] = true;
@@ -1316,6 +1432,7 @@ function placeCamera(dt) {
     if (tt > sy - 0.4) { d = Math.max(2.2, k - 0.6); break; }
   }
   const want = new THREE.Vector3(tx + ox * d, ty + oy * d, tz + oz * d);
+  if (G.L.roof) want.y = Math.min(want.y, G.L.ceil - 0.7);
   if (dt >= 1) camera.position.copy(want); else camera.position.lerp(want, Math.min(1, dt * 7));
   if (shake > 0) camera.position.add(new THREE.Vector3(rand(-1, 1), rand(-1, 1), rand(-1, 1)).multiplyScalar(shake * 0.6));
   camera.lookAt(tx, ty, tz);
@@ -1670,7 +1787,7 @@ function update(dt) {
     else if (hit.esc) { overlay = 'pause'; menuSel = 0; showOverlay('#pause'); markSel($('#pause .card')); }
     else if (hit.closet) openCloset();
     else updateLevel(dt);
-    if (state === 'play') { syncPlayer(dt); placeCamera(dt); updateHUD(); }
+    if (state === 'play') { if (!G.slide) { syncPlayer(dt); placeCamera(dt); } updateHUD(); }
   }
   if (G) updateFloaters(dt); else clearFloaters();
 }

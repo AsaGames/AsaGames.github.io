@@ -107,6 +107,22 @@ function tileTex(kind) {
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   return t;
 }
+TEX.tube = canvasTex(128, 64, (g, w, h) => {
+  g.fillStyle = '#3fbf55'; g.fillRect(0, 0, w, h);
+  g.fillStyle = '#2f9e44'; g.fillRect(0, 0, w / 2, h);
+  g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(0, 0, w, 6);
+});
+TEX.tube.wrapS = TEX.tube.wrapT = THREE.RepeatWrapping;
+function makeTubeMouth() {
+  // a warp pipe sticking out of the wall, opening toward +z
+  const g = new THREE.Group();
+  const body = part('cyl', '#2f9e44', 2.5, 1.4, 2.5, 0, 0, -0.3, g); body.rotation.x = Math.PI / 2;
+  const rim = part('cyl', '#3fbf55', 2.9, 0.45, 2.9, 0, 0, 0.45, g); rim.rotation.x = Math.PI / 2;
+  const hole = new THREE.Mesh(new THREE.CircleGeometry(1.15, 24), new THREE.MeshBasicMaterial({ color: '#0d2a12' }));
+  hole.position.z = 0.68; g.add(hole);
+  part('box', '#5fd36f', 0.22, 0.12, 1.2, -0.85, 0.9, -0.1, g);
+  return g;
+}
 function labelTex(text, opts = {}) {
   const w = opts.w || 256, h = opts.h || 96;
   return canvasTex(w, h, (g) => {
@@ -509,6 +525,6 @@ function makeCloud() {
   return g;
 }
 
-window.ART = { tileTex, GEO, mat, part, canvasTex, rr, TEX, labelTex, sprite, makePoop, setOutfit, makeHat, makeFace, makeCorn, makeGold, makePresent,
+window.ART = { makeTubeMouth, tileTex, GEO, mat, part, canvasTex, rr, TEX, labelTex, sprite, makePoop, setOutfit, makeHat, makeFace, makeCorn, makeGold, makePresent,
   makeSign, makeDoor, makeShop, makeRat, makeExit, setLabel, makeEnemy, makeSpinBar, makeCapture, makeToilet, makeBoat, makePalm, makeCloud };
 })();

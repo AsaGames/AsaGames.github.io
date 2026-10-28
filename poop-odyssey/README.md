@@ -20,6 +20,8 @@ You're a poop sitting in the toilet... and then somebody flushes. Explore 7 king
 
 Walk into doors, shops and signs to use them. Jump on top of the green pipe to go to the next kingdom.
 
+The kingdoms are big rooms inside the plumbing, joined by warp pipes in the walls. Run into one and you slide through a twisty tube to the next room. Steer left and right to grab the corn on the way.
+
 ## The 7 kingdoms
 
 1. **Toilet Bowl Kingdom.** Toilet paper monsters, falling plungers and a soap bubble that floats you way up high.
@@ -27,7 +29,7 @@ Walk into doors, shops and signs to use them. Jump on top of the green pipe to g
 3. **Stinky Sewer Kingdom.** A river of yucky green goo, grumpy poops and gators.
 4. **Fan & Grate Kingdom.** Spinning fans, sharp grates and big winds that lift you up.
 5. **Water Plant Kingdom.** Cleaning tanks with stirring paddles, smashing presses and cleaning robots.
-6. **Giant Ocean Pipe.** Rushing water pushes you toward the ocean. Watch out for crabs.
+6. **Giant Ocean Pipe.** One huge round pipe where rushing water pushes you toward the light at the end. Watch out for crabs.
 7. **The Big Blue Ocean.** Swim with a fish past jellyfish and sharks to the beach.
 
 ## Golden Corn, corn and outfits

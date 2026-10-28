@@ -7,6 +7,8 @@ Each kingdom is a grid of square cells, CS world units wide. Every cell has a gr
 (in world units) and a type:
   .  ground         w  water (h = pool floor, wl = water level)   g  goo (hurts unless you ride the ducky)
   ^  spikes         A  fan updraft (lifts you to `lift`)          C  cracked block (smash with the roll or hard hat)
+  R  rock wall up to the ceiling, splitting a kingdom into chambers
+Chambers are joined by warp pipes (`link`): run into one and you slide through a tube to the other.
 Platforms are floating boxes. Ghost platforms are only solid while wearing goggles.
 Objects sit on the ground of their cell unless they give a y.
 """
@@ -15,11 +17,13 @@ from collections import deque
 
 CS = 2.0                     # cell size in world units
 JUMP_V, FART_V, G, RUN = 12.0, 10.0, 32.0, 6.5
+ROCK = 40.0
 
 
 class K:
-    def __init__(s, key, name, W, D, needed=3, final=False, ceil=14.0):
-        s.key, s.name, s.W, s.D, s.needed, s.final, s.ceil = key, name, W, D, needed, final, ceil
+    def __init__(s, key, name, W, D, needed=3, final=False, ceil=14.0, roof=True):
+        s.key, s.name, s.W, s.D, s.needed, s.final, s.ceil, s.roof = key, name, W, D, needed, final, ceil, roof
+        s.tubes = []
         s.h = [[0.0] * W for _ in range(D)]
         s.t = [['.'] * W for _ in range(D)]
         s.wl = [[None] * W for _ in range(D)]
@@ -37,6 +41,16 @@ class K:
     def box(s, x1, z1, x2, z2, h):
         for x, z in s.cells(x1, z1, x2, z2):
             s.h[z][x] = h; s.t[z][x] = '.'; s.wl[z][x] = None
+
+    def rock(s, x1, z1, x2, z2):
+        for x, z in s.cells(x1, z1, x2, z2):
+            s.h[z][x] = ROCK; s.t[z][x] = 'R'; s.wl[z][x] = None
+
+    def link(s, a, b):
+        """Warp pipe between two cells next to a rock wall. dir says which side the wall is on (n/s/e/w)."""
+        ia, ib = len(s.tubes), len(s.tubes) + 1
+        s.tubes.append(dict(id=ia, x=a[0], z=a[1], dir=a[2], to=ib))
+        s.tubes.append(dict(id=ib, x=b[0], z=b[1], dir=b[2], to=ia))
 
     def pool(s, x1, z1, x2, z2, floor, level=0.0, kind='w', cur=None):
         for x, z in s.cells(x1, z1, x2, z2):
@@ -87,7 +101,7 @@ class K:
         s.winds.append(dict(x1=x1, z1=z1, x2=x2 + 1, z2=z2 + 1, y1=y1, y2=y2, fx=fx, fz=fz))
 
     def out(s):
-        return dict(key=s.key, name=s.name, W=s.W, D=s.D, needed=s.needed, final=s.final, ceil=s.ceil,
+        return dict(key=s.key, name=s.name, W=s.W, D=s.D, needed=s.needed, final=s.final, ceil=s.ceil, roof=s.roof, tubes=s.tubes,
                     h=s.h, t=[''.join(r) for r in s.t], wl=s.wl,
                     lift=[[x, z, v] for (x, z), v in s.lift.items()],
                     cur=[[x, z, v[0], v[1]] for (x, z), v in s.cur.items()],
@@ -105,19 +119,19 @@ k.corn(15, 25, 15, 20, 4)
 k.pool(11, 11, 19, 17, -3, 0)                       # the big pool in the middle
 k.o('gold', 15, 14)
 k.o('sign', 16, 19, text='Swim with the arrows. Press SPACE to swim up.')
-k.ring(15, 14, 5.5, 10)
-k.o('dropper', 12, 10); k.o('dropper', 18, 18)
-k.o('walker', 8, 21); k.o('walker', 22, 21); k.o('walker', 21, 8)
+k.ring(15, 14, 3, 10, y=0.6)
+k.o('dropper', 12, 19); k.o('dropper', 18, 18)
+k.o('walker', 8, 21); k.o('walker', 22, 20); k.o('walker', 21, 6)
 k.o('sign', 18, 23, text='Jump on a toilet paper monster to squash it!')
 # west: stairs up to a tower
 k.box(3, 22, 4, 23, 1); k.box(3, 20, 4, 21, 2); k.box(3, 18, 4, 19, 3); k.box(3, 16, 4, 17, 4)
 k.box(2, 12, 5, 15, 6); k.o('gold', 3.5, 13.5)
 k.corn(3.5, 22.5, 3.5, 16.5, 4)
 # east: soap bubble up to the floating ledge with the party hat
-k.o('bubble', 24, 22)
-k.o('sign', 22, 23, text='Touch the soap bubble to ride it up! Press SPACE to hop out.')
-k.plat(23, 7, 9, 5, 4)
-k.o('treasure', 25, 8, outfit='party'); k.corn(23.5, 9.5, 27.5, 9.5, 4, y=9.6)
+k.o('bubble', 25, 24)
+k.o('sign', 23, 25, text='Touch the soap bubble to ride it up! Press SPACE to hop out.')
+k.plat(23, 16, 9, 5, 4)
+k.o('treasure', 25, 17, outfit='party'); k.corn(23.5, 19.5, 27.5, 19.5, 4, y=9.6)
 k.box(26, 26, 27, 27, 3); k.o('gold', 26.5, 26.5)
 k.o('sign', 24, 27, text='Too high? Jump, then press SPACE again for a FART JUMP!')
 # north: shop, costume door, exit pipe, locked vault
@@ -127,7 +141,10 @@ k.o('exit', 20, 3)
 k.o('sign', 17, 5, text='Find 3 Golden Corn to open the exit pipe!')
 k.vault(26, 4)
 k.o('sign', 24, 7, text='Cracked blocks! Something could smash them... maybe a hard hat?')
-k.corn(9, 8, 20, 8, 6)
+k.corn(11, 7, 20, 7, 5)
+k.rock(0, 9, 29, 10)
+k.link((8, 11, 'n'), (8, 8, 's'))
+k.o('sign', 10, 12, text='Run into the green pipe to slide to the next room!')
 LEVELS.append(k)
 
 # ======================================================== 2. House Pipes Kingdom
@@ -137,7 +154,7 @@ k.o('sign', 15, 30, text='Welcome to the house pipes! Watch out for drips and le
 k.spikes(14, 26, 20, 26)
 k.corn(17, 29, 17, 24, 4)
 k.o('walker', 8, 27); k.o('walker', 26, 27); k.o('walker', 12, 8); k.o('walker', 23, 9)
-k.o('flyer', 10, 23); k.o('flyer', 24, 23); k.o('flyer', 17, 11)
+k.o('flyer', 10, 23); k.o('flyer', 24, 23); k.o('flyer', 17, 8)
 # west tower of pipes
 k.box(2, 26, 3, 27, 2); k.box(2, 24, 3, 25, 4); k.box(4, 22, 5, 23, 6); k.o('gold', 4.5, 22.5)
 k.corn(2.5, 26.5, 4.5, 22.5, 4, None)
@@ -160,7 +177,9 @@ k.box(24, 4, 28, 6, 3); k.o('gold', 26, 5)
 k.o('sign', 22, 7, text='Need to go higher? Fart jump!')
 k.plat(13, 9, 2, 2, 2, ghost=True); k.plat(10, 7, 4, 2, 2, ghost=True); k.plat(7, 4, 6, 2, 2)
 k.o('gold', 8, 5, y=6.8)
-k.o('sign', 14, 12, text='Spooky see-through blocks... special goggles might help.')
+k.o('sign', 16, 10, text='Spooky see-through blocks... special goggles might help.')
+k.rock(0, 11, 33, 12)
+k.link((17, 13, 'n'), (20, 10, 's'))
 k.o('shop', 4, 10)
 k.o('door', 12, 2, outfit='plumber')
 k.o('exit', 19, 2)
@@ -197,6 +216,8 @@ k.o('shop', 19, 3)
 k.o('door', 23, 2, outfit='shades')
 k.o('sign', 21, 5, text='This door wants cool sunglasses. The rat in the shop sells them!')
 k.o('exit', 30, 3)
+k.rock(0, 11, 33, 12)
+k.link((17, 13, 'n'), (18, 10, 's'))
 LEVELS.append(k)
 
 # ======================================================== 4. Fan & Grate Kingdom
@@ -240,8 +261,10 @@ k.o('swimmer', 22, 16); k.o('swimmer', 27, 21); k.o('gold', 24.5, 18.5)
 k.corn(5, 15, 12, 22, 5, y=-1); k.corn(21, 22, 28, 15, 5, y=-1)
 k.o('dropper', 16.5, 17); k.o('dropper', 16.5, 21)
 k.o('walker', 8, 28); k.o('walker', 26, 28); k.o('walker', 10, 6); k.o('walker', 24, 8)
-k.o('bubble', 17, 11)
-k.o('sign', 15, 11, text='Ride the bubble way up high!')
+k.o('bubble', 21, 8)
+k.o('sign', 23, 9, text='Ride the bubble way up high!')
+k.rock(0, 11, 33, 12)
+k.link((17, 13, 'n'), (12, 10, 's'))
 k.plat(13, 3, 10, 8, 2)
 k.o('treasure', 18, 4, outfit='hardhat'); k.o('gold', 14, 4, y=10.8)
 k.vault(3, 29)
@@ -252,7 +275,7 @@ k.o('exit', 29, 4)
 LEVELS.append(k)
 
 # ======================================================== 6. Giant Ocean Pipe
-k = K('bigpipe', 'Giant Ocean Pipe', 24, 46, ceil=12)
+k = K('bigpipe', 'Giant Ocean Pipe', 24, 46, ceil=12, roof=False)
 k.pool(0, 0, 23, 45, -3, 0, cur=(0, -1.6))
 islands = [(7, 41, 16, 45), (3, 34, 8, 37), (15, 31, 20, 34), (6, 23, 17, 27), (2, 16, 7, 19), (16, 13, 21, 17), (5, 6, 10, 9), (8, 0, 16, 3)]
 for x1, z1, x2, z2 in islands:
@@ -274,7 +297,7 @@ k.o('exit', 12, 1)
 LEVELS.append(k)
 
 # ======================================================== 7. The Big Blue Ocean
-k = K('ocean', 'The Big Blue Ocean', 40, 40, needed=2, final=True, ceil=10)
+k = K('ocean', 'The Big Blue Ocean', 40, 40, needed=2, final=True, ceil=10, roof=False)
 k.pool(0, 0, 39, 39, -9, 0)
 for (x, z, h) in [(10, 30, -7), (25, 28, -6), (30, 15, -7), (12, 12, -6), (20, 20, -8)]:
     k.pool(x - 2, z - 2, x + 2, z + 2, h, 0)
@@ -335,6 +358,8 @@ def check(k, goggles=False, smash=False, duck=False, bubble=True):
                 add(x, z, k.wl[z][x] - 0.3, 'swim')
             elif t == 'g':
                 if duck: add(x, z, k.wl[z][x], 'swim')
+            elif t == 'R':
+                continue
             elif t == 'C':
                 add(x, z, k.below[(x, z)] if smash else k.h[z][x], 'g')
             elif (x, z) not in k.sealed or smash:
@@ -345,6 +370,13 @@ def check(k, goggles=False, smash=False, duck=False, bubble=True):
         for x in range(p['x'], p['x'] + p['w']):
             for z in range(p['z'], p['d'] + p['z']):
                 add(x, z, p['y'], 'g')
+    def walled(x1, z1, x2, z2):
+        n = int(max(abs(x2 - x1), abs(z2 - z1)) * 3) + 1
+        for i in range(n + 1):
+            f = i / n
+            if k.t[int(round(z1 + (z2 - z1) * f))][int(round(x1 + (x2 - x1) * f))] == 'R': return True
+        return False
+
     nl = list(nodes)
     bycell = {}
     for n in nl:
@@ -368,6 +400,7 @@ def check(k, goggles=False, smash=False, duck=False, bubble=True):
         for cz in range(max(0, z - R), min(D, z + R + 1)):
             for cx in range(max(0, x - R), min(W, x + R + 1)):
                 gap = max(0.0, math.hypot((cx - x) * CS, (cz - z) * CS) - CS)
+                if (cx, cz) in bycell and walled(x, z, cx, cz): continue
                 for m in bycell.get((cx, cz), []):
                     if m == n: continue
                     dy = m[2] - y
@@ -375,12 +408,16 @@ def check(k, goggles=False, smash=False, duck=False, bubble=True):
                         out.append(m); continue
                     if m[3] in ('g', 'lift') and gap <= rng(dy):
                         out.append(m)
+        for tb in k.tubes:
+            if (tb['x'], tb['z']) == (x, z) and kind == 'g':
+                o = k.tubes[tb['to']]
+                out.extend(m for m in bycell.get((o['x'], o['z']), []) if m[3] == 'g')
         # bubble ride: float up and land on anything below the ceiling nearby
         if bubble and kind == 'g':
             for b in k.objs:
                 if b['kind'] == 'bubble' and int(b['x']) == x and int(b['z']) == z:
                     for m in nl:
-                        if m[3] == 'g' and m[2] <= k.ceil - 1.5 and math.hypot(m[0] - x, m[1] - z) <= 14:
+                        if m[3] == 'g' and m[2] <= k.ceil - 1.5 and math.hypot(m[0] - x, m[1] - z) <= 14 and not walled(x, z, m[0], m[1]):
                             out.append(m)
         return out
 
