@@ -214,6 +214,7 @@ body{background:var(--sky);color:var(--ink);font-family:var(--body);overflow:hid
 <div class="joy" id="joy" hidden><div class="knob" id="knob"></div></div>
 <button class="freeze" id="freezeBtn" hidden>FREEZE</button>
 <button class="peelbtn" id="peelBtn" hidden>PEEL</button>
+<div class="bosspill done" id="disgPill" hidden></div>
 <div class="pa" id="pa" hidden><b>Attention shoppers</b><span id="paText"></span></div>
 
 <div class="screen" id="titleScreen">
@@ -320,7 +321,7 @@ function resize() {
   camMul = camera.aspect < 1 ? 1.45 : 1;
 }
 addEventListener('resize', resize); resize();
-scene.add(new THREE.HemisphereLight('#eaf8ff', '#ffcf9a', 0.85));
+const HEMI = new THREE.HemisphereLight('#eaf8ff', '#ffcf9a', 0.85); scene.add(HEMI);
 const sun = new THREE.DirectionalLight('#ffffff', 0.6); sun.position.set(6, 12, 8); scene.add(sun);
 let world = null;
 function newWorld() { if (world) scene.remove(world); world = new THREE.Group(); scene.add(world); clearBubbles(); }
@@ -609,6 +610,12 @@ const SONGS = {
   space: { bpm: 96, root: 330, type: 'sine', len: 1.6, vol: .45,
     mel: [0, null, 7, null, 12, null, 11, null, 7, null, 4, null, 7, null, null, null, 0, null, 7, null, 14, null, 12, null, 11, null, 7, null, 9, null, null, null],
     bass: [0, null, null, null, null, null, null, null, 5, null, null, null, null, null, null, null, -3, null, null, null, null, null, null, null, 7, null, null, null, null, null, null, null] },
+  disco: { bpm: 124, root: 220, type: 'square', len: .45, vol: .24, kick: true, hat: true,
+    mel: [12, null, 12, 10, null, 7, null, 10, 12, null, 15, null, 12, 10, 7, null, 5, null, 5, 7, null, 10, null, 7, 5, null, 3, null, 0, null, null, null],
+    bass: [0, 12, 0, 12, 0, 12, 0, 12, 5, 17, 5, 17, 5, 17, 5, 17, 3, 15, 3, 15, 3, 15, 3, 15, 7, 19, 7, 19, 7, 19, 7, 19] },
+  drive: { bpm: 144, root: 262, type: 'triangle', len: .8, vol: .5, hat: true,
+    mel: [7, 9, 11, 12, null, 11, 9, 7, 4, null, 7, null, 9, null, null, null, 7, 9, 11, 12, null, 14, 12, 11, 9, null, 7, null, 7, null, null, null],
+    bass: [0, null, 7, null, 0, null, 7, null, 5, null, 0, null, 5, null, 0, null, 2, null, 9, null, 2, null, 9, null, 7, null, 2, null, 7, null, 2, null] },
   house: { bpm: 168, root: 262, type: 'square', len: .7, vol: .32, kazoo: true,
     mel: [0, 4, 7, 12, 7, 4, 0, null, 2, 5, 9, 14, 9, 5, 2, null, 4, 7, 11, 16, 12, 11, 7, 4, 5, 4, 2, -1, 0, null, 0, null,
           12, null, 11, 9, 7, null, 4, null, 5, 7, 9, 5, 2, null, null, null, 7, 9, 11, 12, 14, 12, 11, 7, 12, null, 7, null, 12, null, null, null],
@@ -626,6 +633,7 @@ function scheduler() {
     const b = song.bass[step % song.bass.length];
     if (b != null) osc('triangle', song.root / 2 * 2 ** (b / 12), null, nextT, sd * .9, .7, musicBus);
     if (song.hat && i % 2 === 1) noise(nextT, .04, .25, 7000, musicBus);
+    if (song.kick && i % 2 === 0) osc('sine', 150, 45, nextT, .2, .9, musicBus);
     step++; nextT += sd;
   }
 }
@@ -871,6 +879,8 @@ function buildStore() {
   // the player
   P.x = 0; P.z = 23.5; P.vx = P.vz = 0; P.face = Math.PI; P.lie = 0; P.inCart = null; P.moving = false;
   P.obj = makeFood(foodKey, true); P.obj.scale.setScalar(F.scale); world.add(P.obj);
+  P.disguise = 0; P.glasses = null;
+  makeStoreDog(); S.kits = []; S.kitT = 0; spawnKit(); spawnKit();
   P.shadow = new THREE.Mesh(new THREE.CircleGeometry(.9, 20), new THREE.MeshBasicMaterial({ color: '#2b1650', transparent: true, opacity: .2, depthWrite: false }));
   P.shadow.rotation.x = -Math.PI / 2; world.add(P.shadow);
   camera.position.set(0, 10 * camMul, 34.5); camera.lookAt(0, 0, 23.5);
@@ -896,6 +906,94 @@ function stepToward(o, tx, tz, sp, dt) {
 }
 const inRect = (p, r) => p.x > r.x0 && p.x < r.x1 && p.z > r.z0 && p.z < r.z1;
 
+/* silly disguise: glasses, a big nose and a mustache */
+function makeGroucho() {
+  const g = new THREE.Group();
+  for (const x of [-.16, .16]) { part('box', '#14101f', .28, .2, .04, x, 0, 0, g); part('box', '#bfeaff', .2, .12, .045, x, 0, .005, g); }
+  part('box', '#14101f', .1, .04, .04, 0, .04, 0, g);
+  part('sph', '#ff9e9e', .2, .2, .22, 0, -.12, .1, g);
+  part('box', '#3b2314', .42, .09, .07, 0, -.25, .06, g);
+  for (const x of [-.22, .22]) part('sph', '#3b2314', .1, .1, .08, x, -.22, .06, g);
+  part('box', '#3b2314', .4, .07, .04, 0, .14, .02, g);
+  return g;
+}
+function spawnKit() {
+  const spots = [];
+  for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++) spots.push({ x: AX[i] + rand(-2, 2), z: AZ[j] + (j === 1 ? rand(-10, 10) : rand(-1, 1)) });
+  const far = spots.filter(q => Math.hypot(q.x - P.x, q.z - P.z) > 12 && !S.kits.some(k => Math.hypot(k.x - q.x, k.z - q.z) < 8));
+  const sp = pick(far.length ? far : spots);
+  const g = new THREE.Group(), gl = makeGroucho(); gl.scale.setScalar(1.6); gl.position.y = 1.3; g.add(gl);
+  const ring = glow('torus', '#3fe0b0', 1.4, 1.4, .6, 0, .05, 0, g, .7); ring.rotation.x = Math.PI / 2;
+  g.position.set(sp.x, 0, sp.z); world.add(g);
+  S.kits.push({ g, gl, x: sp.x, z: sp.z });
+}
+function wearDisguise() {
+  if (P.glasses) P.obj.userData.body.remove(P.glasses);
+  const e = FOODS[foodKey].eyes; P.glasses = makeGroucho(); P.glasses.position.set(e[0], e[1], e[2] + .16);
+  P.obj.userData.body.add(P.glasses); P.disguise = 20;
+  SFX.fanfare(); toast('DISGUISE ON!<small>Nobody will EVER recognize you now.</small>', 2);
+  const near = S.W.filter(w => Math.hypot(w.x - P.x, w.z - P.z) < 14);
+  if (near.length) say(pick(near).g, pick(['What a handsome banana!', 'Oh, hello, sir.', 'That banana looks... distinguished.']), 2);
+}
+function updateKits(dt) {
+  for (let i = S.kits.length - 1; i >= 0; i--) {
+    const k = S.kits[i]; k.gl.rotation.y += dt * 2; k.gl.position.y = 1.3 + Math.sin(S.t * 3 + i) * .15;
+    if (!P.inCart && Math.hypot(k.x - P.x, k.z - P.z) < 1.4) { world.remove(k.g); S.kits.splice(i, 1); S.kitT = 22; wearDisguise(); }
+  }
+  if (S.kitT > 0) { S.kitT -= dt; if (S.kitT <= 0 && S.kits.length < 2) spawnKit(); }
+  const pill = $('#disgPill');
+  if (P.disguise > 0) {
+    P.disguise -= dt; pill.hidden = false; pill.textContent = `DISGUISED: ${Math.ceil(P.disguise)}s`;
+    if (P.disguise <= 0) { P.obj.userData.body.remove(P.glasses); P.glasses = null; pill.hidden = true; toast('Your disguise fell off!', 1.4); SFX.boing(); }
+  }
+}
+/* Sir Sniffs-a-Lot, the store dog: freezing does not fool a nose */
+function makeStoreDog() {
+  const g = new THREE.Group(); buildDog(g);
+  part('box', '#ff3b3b', .72, .12, .16, 0, 1.02, .5, g); part('sph', '#ffd93b', .12, .12, .06, 0, .92, .58, g);
+  g.scale.setScalar(1.25); world.add(g);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(4.1, 4.5, 48), new THREE.MeshBasicMaterial({ color: '#7ccf3a', transparent: true, opacity: .45, depthWrite: false, side: THREE.DoubleSide }));
+  ring.rotation.x = -Math.PI / 2; ring.position.y = .06; world.add(ring);
+  const node = { i: 3, j: 1 };
+  S.dog = { g, ring, x: AX[node.i], z: AZ[node.j], face: 0, node, state: 'wander', timer: 0, sniff: 0, ph: 0, fall: 0, lx: 0, lz: 0, kind: 'dog' };
+  pickNext(S.dog);
+}
+function dogBack(D, line) { D.state = 'wander'; D.node = nearestNode(D); pickNext(D); if (line) say(D.g, line, 1.6, 2.4); }
+function updateDog(dt, demo, inFruit) {
+  const D = S.dog; if (!D) return false;
+  const dP = Math.hypot(P.x - D.x, P.z - D.z);
+  const smell = !demo && !P.inCart && S.grace <= 0 && !inFruit && dP < 4.4;
+  if (D.state === 'wander') {
+    if (stepToward(D, AX[D.target.i], AZ[D.target.j], 3.4, dt)) { D.node = D.target; pickNext(D); }
+    if (smell) { D.state = 'sniff'; D.sniff = 0; say(D.g, '*sniff sniff... SNIFF*', 1.5, 2.4); }
+  } else if (D.state === 'sniff') {
+    stepToward(D, P.x, P.z, 1.8, dt);
+    D.sniff += dt * (smell ? 1 : -1.5);
+    if (D.sniff >= 1.5) {
+      D.state = 'bark'; D.timer = 0; SFX.woof(); say(D.g, 'WOOF WOOF! (I FOUND A BANANA!)', 2, 2.4);
+      toast('THE DOG SMELLS YOU!<small>Run! Hide in the fruit stand or drop a peel!</small>', 1.8, 'danger');
+    } else if (D.sniff <= 0) dogBack(D, '*confused sniff*');
+  } else if (D.state === 'bark') {
+    D.timer += dt; stepToward(D, P.x, P.z, 4.6, dt);
+    if (Math.random() < dt * 2.5) SFX.woof();
+    for (const w of S.W) if ((w.state === 'walk' || w.state === 'browse') && Math.hypot(w.x - P.x, w.z - P.z) < 12) { w.sus += dt * .45; if (w.sus >= 1) startChase(w); }
+    if (dP < 1.3 && !demo) { caught(D); return true; }
+    if (inFruit || P.inCart || D.timer > 8) dogBack(D, inFruit ? '*sniffs a pineapple instead*' : '*pant pant* ...where did it go?');
+  } else if (D.state === 'slip') {
+    D.timer -= dt; if (D.timer > 1.9) D.face += dt * 16;
+    if (D.timer <= 0) dogBack(D, '*embarrassed dog noises*');
+  }
+  if (D.state !== 'slip' && !demo) for (let i = 0; i < S.peels.length; i++) {
+    const pl = S.peels[i];
+    if (Math.hypot(pl.x - D.x, pl.z - D.z) < .9) { world.remove(pl.g); S.peels.splice(i, 1); D.state = 'slip'; D.timer = 2.4; SFX.slip(); say(D.g, 'YIPE! *slide*', 1.6, 2.4); break; }
+  }
+  D.fall = lerp(D.fall, D.state === 'slip' && D.timer > .5 ? 1 : 0, Math.min(1, dt * 8));
+  const moved = Math.hypot(D.x - D.lx, D.z - D.lz); D.lx = D.x; D.lz = D.z; D.ph += moved * 3;
+  D.g.position.set(D.x, Math.abs(Math.sin(D.ph)) * .12 + D.fall * .5, D.z); D.g.rotation.set(0, D.face, D.fall * 2.6, 'YXZ');
+  D.ring.position.x = D.x; D.ring.position.z = D.z; D.ring.visible = D.state !== 'slip';
+  D.ring.material.color.set(D.state === 'bark' ? '#ff3b3b' : D.state === 'sniff' ? '#ff8a00' : '#7ccf3a');
+  return false;
+}
 function dropPeel() {
   if (state !== 'store' || !S || P.inCart || S.peelCD > 0) return;
   if (S.peels.length >= 3) { const old = S.peels.shift(); world.remove(old.g); }
@@ -998,7 +1096,7 @@ function updateStore(dt, demo) {
     if (watching) {
       const vis = canSee(w);
       if (vis > 0 && P.moving) {
-        const before = w.sus; w.sus += dt * (.75 + 1.5 * vis) * (inFruit ? .4 : 1);
+        const before = w.sus; w.sus += dt * (.75 + 1.5 * vis) * (inFruit ? .4 : 1) * (P.disguise > 0 ? .3 : 1);
         if (before < .45 && w.sus >= .45) { say(w.g, pick(HUH), 1.6); SFX.huh(); }
         if (w.sus >= 1) startChase(w);
       } else w.sus = Math.max(0, w.sus - dt * .3);
@@ -1020,6 +1118,7 @@ function updateStore(dt, demo) {
       c.rotation.y = lerpAng(c.rotation.y, w.face, k);
     }
   }
+  if (updateDog(dt, demo, inFruit)) return;
   for (let i = 0; i < S.W.length; i++) {
     const a = S.W[i]; if (a.state === 'slip' || a.state === 'arrived') continue;
     for (let j = i + 1; j < S.W.length; j++) {
@@ -1041,6 +1140,7 @@ function updateStore(dt, demo) {
     if (d < 1.2 && d > 1e-4) { P.x = w.x + dx / d * 1.2; P.z = w.z + dz / d * 1.2; }
   }
   if (demo) { updateBunch(dt, false, false); storeCam(dt, true); return; }
+  updateKits(dt);
   // peels go stale, announcements, chatter
   S.peelCD -= dt;
   for (let i = S.peels.length - 1; i >= 0; i--) { const pl = S.peels[i]; pl.t -= dt; if (pl.t <= 0) { world.remove(pl.g); S.peels.splice(i, 1); } }
@@ -1156,19 +1256,99 @@ function updateScan(dt) {
 function caught(w) {
   setState('caught'); playSong(null); SFX.wahwah();
   const who = w && w.kind === 'cashier' ? 'The cashier' : 'A shopper';
-  $('#caughtMsg').textContent = `${who} caught you! They put you back with the other fruit.`;
+  $('#caughtMsg').textContent = w && w.kind === 'dog' ? 'Sir Sniffs-a-Lot the store dog licked you! Everyone saw. They put you back with the other fruit.' : `${who} caught you! They put you back with the other fruit.`;
   setTimeout(() => $('#retryBtn').focus(), 50);
 }
 
 /* the drive home */
-let rideT = 0;
+/* the drive home: you're in the shopping bag in the back seat of a convertible */
+let RD = null;
+function makeRideCar() {
+  const g = new THREE.Group(), c = '#ff5fa2';
+  part('box', c, 1.1, .45, 2.3, 0, .45, 0, g); part('box', shade(c, .8), 1.12, .12, 2.32, 0, .28, 0, g);
+  part('box', '#bfeaff', 1.0, .38, .05, 0, .84, .45, g).rotation.x = -.45;
+  for (const x of [-.25, .25]) part('box', '#7a4a22', .4, .4, .2, x, .8, -.12, g);
+  part('box', '#7a4a22', .95, .35, .2, 0, .78, -.98, g);
+  wheels(g, null, [[-.55, -.75], [.55, -.75], [-.55, .8], [.55, .8]], .45);
+  for (const x of [-.35, .35]) glow('box', '#fff36b', .2, .12, .05, x, .5, 1.16, g);
+  part('cyl', '#2b1650', .26, .05, .26, -.25, .95, .28, g).rotation.x = -1.1;
+  const driver = makePerson({ hair: '#7b4dff', shirt: '#ff8a00' }); driver.scale.setScalar(.27); driver.position.set(-.25, .38, -.02); g.add(driver);
+  driver.userData.armsBusy = true; driver.userData.arms.forEach(a => { a.rotation.x = -1.25; });
+  part('box', '#d9b07a', .5, .45, .4, .22, .85, -.7, g);
+  part('box', '#f3d08a', .1, .55, .1, .05, 1.1, -.78, g);
+  part('box', '#3fe0b0', .16, .3, .16, .38, 1.02, -.62, g);
+  const food = makeFood(foodKey, true); food.scale.setScalar(.33); food.position.set(.22, .9, -.7); food.rotation.y = Math.PI; g.add(food);
+  g.scale.setScalar(3); g.rotation.y = Math.PI;
+  return { g, food, driver };
+}
 function startRide() {
-  $('#rideText').textContent = sub('The shopper has NO idea they just bought sneaky bananas.');
-  setState('ride'); rideT = 4.4;
-  const r = $('#rideScreen'); r.classList.remove('go'); void r.offsetWidth; r.classList.add('go');
-  playSong('house');
-  setTimeout(() => { if (state === 'ride') SFX.honk(); }, 1100);
-  setTimeout(() => { if (state === 'ride') SFX.honk(); }, 2600);
+  setState('ride'); newWorld(); scene.background = new THREE.Color('#8fd8ff'); playSong('drive');
+  bigFloor(grassTex('#8fdc6a', '#7cc95a', 60), 700);
+  flat('#55506a', 16, 700, 0, -150, .02);
+  for (const x of [-9.5, 9.5]) flat('#e6e0d0', 3, 700, x, -150, .03);
+  for (let z = 30; z > -260; z -= 8) flat('#ffd93b', .4, 3, 0, z, .04);
+  for (let z = 30; z > -250; z -= 12) for (const side of [-1, 1]) {
+    if (side > 0 && z < -185 && z > -228) continue;
+    const o = new THREE.Group(), k = Math.random(); let x = side * rand(17, 26);
+    if (k < .45) { UB.house(o); o.scale.setScalar(rand(5, 7)); o.rotation.y = side > 0 ? -Math.PI / 2 : Math.PI / 2; }
+    else if (k < .85) { UB.tree(o); o.scale.setScalar(rand(3, 5)); }
+    else { UB.mailbox(o); o.scale.setScalar(1.8); x = side * 11.6; o.rotation.y = side > 0 ? -Math.PI / 2 : Math.PI / 2; }
+    o.position.set(x, 0, z + rand(-3, 3)); world.add(o);
+  }
+  // their house at the end of the road
+  const home = new THREE.Group();
+  part('box', '#ffc3e1', 1.4, .9, 1.1, 0, .45, 0, home); part('pyr', '#7b4dff', 1.6, .7, 1.3, 0, 1.25, 0, home);
+  part('box', '#8a5a2b', .25, .45, .05, 0, .23, .56, home); for (const x of [-.4, .4]) part('box', '#bfeaff', .3, .25, .05, x, .55, .56, home);
+  home.scale.setScalar(9); home.position.set(24, 0, -206); home.rotation.y = -Math.PI / 2; world.add(home);
+  flat('#c9c2b5', 10, 7, 14, -206, .035);
+  sign('THEIR HOUSE', '#ffd93b', 7, 1.6, 12.5, 8, -199, world);
+  // speed bumps
+  const bumps = [-40, -95, -150];
+  for (const z of bumps) { part('box', '#ffd93b', 15.8, .4, 1.4, 0, .2, z, world); for (let k = 0; k < 7; k++) part('box', '#2b1650', 1, .41, 1.42, -6.6 + k * 2.2, .2, z, world); }
+  // other cars, and a dog who REALLY wants to know what's in that bag
+  const others = [];
+  for (let i = 0; i < 5; i++) { const o = new THREE.Group(); UB.car(o); o.scale.setScalar(3); o.position.set(-4, 0, -40 - i * 50); world.add(o); others.push(o); }
+  const dog = new THREE.Group(); buildDog(dog); dog.scale.setScalar(1.8); dog.position.set(8, 0, -62); dog.rotation.y = Math.PI; world.add(dog);
+  const car = makeRideCar(); car.g.position.set(4, 0, 12); world.add(car.g);
+  RD = { car, others, dog, bumps, nb: 0, warned: -1, t: 0, z: 12, v: 24, bY: 0, bV: 0, hY: 0, hV: 0, honkT: 1.2, dogT: 0, done: false, doneT: 0, held: 0, flew: 0 };
+  camera.position.set(14, 8, 32);
+  toast(`GOING HOME!<small>Hold ${isTouch ? 'FREEZE' : 'SPACE'} on the bumps so you don't fly out of the bag!</small>`, 2.8);
+}
+function updateRide(dt) {
+  const R = RD; R.t += dt;
+  if (R.z < -178) R.v = Math.max(0, R.v - dt * 22 * (R.v > 6 ? 1 : .6));
+  R.z -= R.v * dt;
+  const b = R.bumps[R.nb];
+  if (b !== undefined) {
+    if (R.z - b < 26 && R.warned !== R.nb) { R.warned = R.nb; toast(`BUMP!<small>Hold ${isTouch ? 'FREEZE' : 'SPACE'}!</small>`, 1, 'danger'); SFX.tick(); }
+    if (R.z <= b + 2) {
+      R.nb++; R.bV = 7; SFX.bonk();
+      if (freezeHeld()) { R.held++; say(R.car.food, pick(['Phew! Holding on!', 'Not today, bump!', 'Safe in the bag!']), 1.4, 1.2); }
+      else { R.flew++; R.hV = 11; SFX.boing(); say(R.car.food, pick(['WHEEEEE!', 'WHOOPS!', 'Bananas can FLY?!']), 1.4, 1.2); }
+    }
+  }
+  R.bV -= 40 * dt; R.bY = Math.max(0, R.bY + R.bV * dt); if (R.bY === 0) R.bV = Math.max(0, R.bV);
+  R.hV -= 24 * dt; R.hY = Math.max(0, R.hY + R.hV * dt); if (R.hY === 0) R.hV = Math.max(0, R.hV);
+  R.car.g.position.set(4, R.bY * .3, R.z); R.car.g.rotation.x = R.bV * .012;
+  const f = R.car.food; f.position.y = .9 + R.hY / 3; f.rotation.x = R.hY > .05 ? R.t * 9 : 0;
+  R.car.driver.userData.head.rotation.y = Math.sin(R.t * 2) * .3;
+  for (const o of R.others) o.position.z += 16 * dt;
+  // the dog runs alongside for a bit
+  if (R.z < -45 && R.z > -120) {
+    R.dogT += dt; R.dog.position.z = R.z + 3 + Math.sin(R.dogT * 2); R.dog.position.y = Math.abs(Math.sin(R.dogT * 14)) * .4;
+    if (!R.dogSaid) { R.dogSaid = true; SFX.woof(); say(R.dog, 'WOOF! (Is that a BANANA in that bag?!)', 2.4, 3.2); }
+  } else if (R.z <= -120) R.dog.position.y = 0;
+  R.honkT -= dt;
+  if (R.honkT <= 0 && !R.done) { R.honkT = rand(3, 5); SFX.honk(); say(R.car.driver, pick(['La la la, going home!', 'Beep beep!', 'Bananas for dinner!', 'What a nice day for a drive!']), 1.8, 1.4); }
+  const k = Math.min(1, dt * 3);
+  camera.position.x = lerp(camera.position.x, 13, k); camera.position.y = lerp(camera.position.y, 7.5, k); camera.position.z = lerp(camera.position.z, R.z + 19, k);
+  camera.lookAt(3, 2.2, R.z - 5);
+  if (!R.done && R.v <= 0.05) {
+    R.done = true; R.doneT = 2; SFX.fanfare();
+    toast(`HOME!<small>${R.flew ? `You flew out of the bag ${R.flew} time${R.flew > 1 ? 's' : ''}. ` : 'You held on the whole way! '}Now... CHAOS.</small>`, 2);
+  }
+  if (R.done) { R.doneT -= dt; if (R.doneT <= 0) { RD = null; startHouse(); } }
+  else if (R.t > 22) { RD = null; startHouse(); }
 }
 
 /* ================= LEVEL 2: CHAOS AT THEIR HOUSE ================= */
@@ -1473,6 +1653,12 @@ const BOSSES = {
   galaxy: { name: 'The Space Kraken', build: UB.kraken, kind: 'whale', y: 2.6, lines: ['SPACE TENTACLES!', 'I eat stars for breakfast!', 'Blub... in SPACE.'] },
   universe: { name: 'The Cosmic Cat', build: UB.cosmiccat, kind: 'cat', y: 1.9, lines: ['I knock planets off tables.', 'MEOW. The universe is MY box.', '*purrs in outer space*'] },
 };
+UB.boombox = g => {
+  part('box', '#2b1650', 1.6, .9, .5, 0, .45, 0, g); part('box', '#c0c7cf', 1.2, .08, .08, 0, 1.05, 0, g);
+  for (const x of [-.4, .4]) { part('cyl', '#7b4dff', .55, .06, .55, x, .45, .26, g).rotation.x = Math.PI / 2; glow('cyl', '#3fe0b0', .25, .07, .25, x, .45, .28, g).rotation.x = Math.PI / 2; }
+  for (const x of [-.65, .65]) part('box', '#c0c7cf', .06, .25, .06, x, .95, 0, g);
+  part('box', '#ff5fa2', .3, .12, .05, 0, .75, .26, g);
+};
 const EXTRA = {
   street: [U('stroller', .7, 5, UB.stroller), U('doghouse', 1.1, 5, UB.doghouse), U('hot dog cart', 1.4, 4, UB.hotdog), U('pickup truck', 2.6, 5, UB.pickup, { mover: 'car', y: 1.6, walk: 1.4, run: 2.8 }), U('garage', 3.8, 4, UB.garage), U('fire truck', 4.8, 2, UB.firetruck, { mover: 'car', y: 1.8, walk: 1, run: 2.2 })],
   town: [U('food truck', .35, 12, UB.icecream, { mover: 'car', y: 1.6, walk: 4, run: 8 }), U('little shop', [.8, 1], 14, UB.shop), U('pizza place', 1.2, 6, UB.shop), U('train', 1.5, 2, UB.train, { mover: 'car', y: 1.2, walk: 3, run: 6 }), U('library', 1.4, 4, UB.church), U('fire station', 1.6, 3, UB.garage), U('shopping mall', 3.6, 3, UB.mall), U('hotel', [2.6, 3.2], 5, UB.hotel)],
@@ -1630,6 +1816,12 @@ function buildStage(ix) {
     spawnThing(d, x, z); placed.push({ x, z, s });
   }
   if (BOSSES[st.key]) spawnBoss(st);
+  for (let k = 0; k < 2; k++) {
+    const a = rand(0, 6.28), r = rand(st.L * .25, st.L * .6);
+    const it = spawnThing({ name: 'boombox', s: st.r0 * .5, count: 1, build: UB.boombox, unit: true, spin: .8 }, Math.sin(a) * r, Math.cos(a) * r, st.r0 * .5);
+    it.party = true;
+  }
+  H.party = 0;
   if (!BALL) makeBall();
   BALL.shadow.visible = !SPACEY.includes(st.key);
   B = B || {}; Object.assign(B, { x: 0, z: 0, vx: 0, vz: 0, r: st.r0, vr: st.r0, face: Math.PI });
@@ -1649,7 +1841,8 @@ function takeItem(it) {
   B.r += .16 * it.s;
   burst(it.x, Math.min(it.s, B.r), it.z, B.r);
   H.counts[it.name] = (H.counts[it.name] || 0) + 1;
-  const isNew = addSticker(H.st.key, it.name);
+  const isNew = !it.party && addSticker(H.st.key, it.name);
+  if (it.party) startParty();
   if (it.s >= H.st.r0 * 3 || it.name[0] === it.name[0].toUpperCase() && it.name[0] !== it.name[0].toLowerCase()) totals.big.push(it.name);
   const got = $('#got'); got.innerHTML = `<small>ROLLED UP</small>${it.name.toUpperCase()}${isNew ? '<em>NEW STICKER!</em>' : ''}`; got.classList.remove('pop'); void got.offsetWidth; got.classList.add('pop');
   if (it.s > B.r * .6) SFX.slurp(clamp(1.4 - it.s / B.r, .5, 1.2)); else SFX.pop(clamp(1.6 - it.s / B.r, .8, 1.5));
@@ -1664,6 +1857,21 @@ function takeItem(it) {
     $('#bossPill').classList.add('done'); $('#bossPill').textContent = sub(`You ate ${it.name}!`);
   }
   if (B.r >= H.st.rEnd) startTransition();
+}
+function startParty() {
+  H.party = 12; H.partyT = 0; playSong('disco'); SFX.fanfare();
+  toast("DANCE PARTY!!!<small>Everybody dances... so nobody runs away!</small>", 2.4);
+}
+function updateParty(dt) {
+  if (!(H.party > 0)) return;
+  H.party -= dt; H.partyT += dt;
+  HEMI.color.setHSL((H.partyT * .45) % 1, .9, .72);
+  if (Math.random() < dt * 6) burst(B.x + rand(-1, 1) * (8 + B.r * 4), B.r * 2.5, B.z + rand(-1, 1) * (8 + B.r * 4), B.r * .7);
+  if (H.party <= 0) {
+    HEMI.color.set('#eaf8ff');
+    for (const it of H.items) if (!it.taken && !H.movers.some(m => m.it === it)) it.g.position.y = 0;
+    playSong(SPACEY.includes(H.st.key) ? 'space' : 'house'); toast('Party is over!<small>Everybody runs again!</small>', 1.6);
+  }
 }
 function spawnMore(dt) {
   H.spawnT -= dt; if (H.spawnT > 0) return; H.spawnT = .25;
@@ -1709,6 +1917,12 @@ function updateRoll(dt) {
     const K = KINDS[m.kind];
     const dx = it.x - B.x, dz = it.z - B.z, d = Math.hypot(dx, dz) || 1, edible = it.s <= B.r * .85;
     let tx, tz, spd; m.cool -= dt;
+    if (H.party > 0) {
+      it.g.rotation.y += dt * 5; it.g.position.y = Math.abs(Math.sin(H.partyT * 10 + it.x)) * .3 * it.s;
+      if (m.kind === 'person' || m.kind === 'astro') { const u = it.g.children[0].userData; animPerson(it.g.children[0], H.partyT * 12, 1.1); if (u.arms) { u.arms[0].rotation.z = .6 + Math.sin(H.partyT * 12) * .4; u.arms[1].rotation.z = -.6 - Math.sin(H.partyT * 12) * .4; } }
+      if (m.cool <= 0 && Math.random() < dt * .4 && d < 12 + B.r * 4) { m.cool = 5; say(it.g, pick(['PARTY!', 'Woo-hoo!', '*busts a move*', 'I LOVE this song!', 'Dance with me, banana!']), 1.6, m.y); }
+      continue;
+    }
     if (m.boss && !edible) {
       tx = -dx / d; tz = -dz / d; spd = (5 + B.r * 2) * .45;
       if (m.cool <= 0 && d < 14 + B.r * 4) { m.cool = 5; say(it.g, pick(m.boss.lines), 2.2, m.y); SFX.huh(); }
@@ -1759,6 +1973,8 @@ function updateRoll(dt) {
     }
   }
   spawnMore(dt);
+  updateParty(dt);
+  if (H.party > 0) for (const it of H.items) if (!it.taken && !it.boss && Math.abs(it.x - B.x) < 30 + B.r * 6 && Math.abs(it.z - B.z) < 30 + B.r * 6 && !H.movers.some(m => m.it === it)) it.g.position.y = Math.abs(Math.sin(H.partyT * 9 + it.x * 1.3)) * .25 * it.s;
   // ball visuals
   if (sp > .01) {
     _axis.set(B.vz, 0, -B.vx).normalize(); _q.setFromAxisAngle(_axis, sp * dt / B.r); BALL.roll.quaternion.premultiply(_q);
@@ -1842,6 +2058,7 @@ function setStageHud() {
 
 /* swallowing the whole level */
 function startTransition() {
+  if (H.party > 0) { H.party = 0; HEMI.color.set('#eaf8ff'); }
   trans = { t: 0, phase: 0 };
   SFX.slurp(.5); setTimeout(() => SFX.fanfare(), 350);
   toast(`CHOMP!!!<small>You ate ${H.st.eat}!</small>`, 2.2);
@@ -1923,6 +2140,8 @@ function landInStore() {
   Z = null; dropBall(); scene.background = new THREE.Color('#8fd8ff');
   buildStore();
   for (const w of S.W) { w.cone.visible = false; w.mark.visible = false; }
+  if (S.dog) S.dog.ring.visible = false;
+  for (const k of S.kits) world.remove(k.g); S.kits = [];
   setState('spit'); $('#pow').hidden = false; $('#pow').innerHTML = sub('Phew!<small>Back to banana size.</small>');
   SFX.boing(); playSong('store');
   P.x = 2; P.z = 18.6; P.face = 0; P.lie = 0; P.shadow.visible = false;
@@ -2021,34 +2240,37 @@ const HINTS = {
   store: isTouch ? "Don't move in the <b>yellow</b> light! Hold <b>FREEZE</b> to look like a real banana. <b>PEEL</b> makes people slip. Get into a <b>shopping cart</b>."
                  : "Don't move in the <b>yellow</b> light! Hold <b>SPACE</b> to freeze. <b>P</b> drops a slippery peel. Sneak into a <b>shopping cart</b>.",
   scan: 'Look like a real banana. <b>Hold still</b> until you hear the big BEEP!',
+  ride: isTouch ? 'Hold <b>FREEZE</b> when the car hits a bump, or you fly out of the bag!' : 'Hold <b>SPACE</b> when the car hits a bump, or you fly out of the bag!',
 };
-const LVL = { store: 'Grocery Store', scan: 'Checkout!' };
+const LVL = { store: 'Grocery Store', scan: 'Checkout!', ride: 'The Drive Home' };
 function setState(s) {
   state = s;
   $('#titleScreen').hidden = s !== 'title';
   $('#caughtScreen').hidden = s !== 'caught';
-  $('#rideScreen').hidden = s !== 'ride';
+  $('#rideScreen').hidden = true;
   $('#endScreen').hidden = s !== 'end';
-  const play = s === 'store' || s === 'scan' || s === 'roll';
+  const play = s === 'store' || s === 'scan' || s === 'roll' || s === 'ride';
   $('#hud').hidden = !play;
   if (HINTS[s]) { $('#hint').innerHTML = sub(HINTS[s]); $('#lvl').textContent = LVL[s]; }
   $('#houseHud').hidden = s !== 'roll'; $('#got').hidden = s !== 'roll';
   $('#scanPanel').hidden = s !== 'scan';
   joyEl.hidden = !(isTouch && (s === 'store' || s === 'roll'));
-  fBtn.hidden = !(isTouch && (s === 'store' || s === 'scan'));
+  fBtn.hidden = !(isTouch && (s === 'store' || s === 'scan' || s === 'ride'));
   $('#peelBtn').hidden = !(isTouch && s === 'store');
-  if (s !== 'store') $('#pa').hidden = true;
+  if (s !== 'store') { $('#pa').hidden = true; $('#disgPill').hidden = true; }
   if (s !== 'store' && s !== 'roll') { joy.x = joy.y = 0; joy.id = null; knob.style.transform = ''; }
   if (!play) { $('#toast').hidden = true; toastT = 0; }
   if (s === 'title') { syncContinue(); renderHats(); }
   if (s !== 'roll') $('#bossPill').hidden = true;
 }
 function startStore() {
+  HEMI.color.set('#eaf8ff');
   trans = null; Z = null; $('#pow').hidden = true; clearParts(); dropBall(); scene.background = new THREE.Color('#8fd8ff');
   buildStore(); setState('store'); playSong('store');
   toast('SNEAK!<small>Hop into a shopping cart without getting spotted.</small>', 3);
 }
 function startStage(ix, intro) {
+  HEMI.color.set('#eaf8ff');
   trans = null; Z = null; $('#pow').hidden = true; clearParts(); dropBall(); B = null;
   if (ix === 0) { totals.eaten = 0; totals.big = []; }
   buildStage(ix); setState('roll'); setStageHud(); $('#got').innerHTML = '<small>READY</small>ROLL!';
@@ -2205,7 +2427,7 @@ function frame(t) {
   else if (state === 'roll') { if (trans) updateTransition(dt); else updateRoll(dt); }
   else if (state === 'finale') updateZoom(dt);
   else if (state === 'spit') updateSpit(dt);
-  else if (state === 'ride') { rideT -= dt; if (rideT <= 0) startHouse(); }
+  else if (state === 'ride') { if (RD) updateRide(dt); }
   if (toastT > 0) { toastT -= dt; if (toastT <= 0) $('#toast').hidden = true; }
   updBubbles(dt); updParts(dt);
   for (const sp of HAT_SPINS) sp.rotation.y += dt * 14;
@@ -2219,7 +2441,7 @@ function boot() {
 }
 const fontsReady = document.fonts && document.fonts.load ? Promise.all([document.fonts.load('40px "Lilita One"'), document.fonts.load('800 16px "Baloo 2"')]) : Promise.resolve();
 Promise.race([fontsReady, new Promise(r => setTimeout(r, 1500))]).catch(() => {}).then(boot);
-window.__bs = { startHouse, startStore, startRide, startStage, get state() { return state; }, get P() { return P; }, get S() { return S; }, get H() { return H; }, get B() { return B; }, get trans() { return trans; }, startScan: () => startScan(S.W[0], 0), grow: r => { B.r = r; }, chomp: () => startTransition(), get Z() { return Z; }, get SP() { return SP; }, get stage() { return stageIx; } };
+window.__bs = { startHouse, startStore, startRide, startStage, get state() { return state; }, get P() { return P; }, get S() { return S; }, get H() { return H; }, get B() { return B; }, get trans() { return trans; }, get RD() { return RD; }, startScan: () => startScan(S.W[0], 0), grow: r => { B.r = r; }, chomp: () => startTransition(), get Z() { return Z; }, get SP() { return SP; }, get stage() { return stageIx; } };
 })();
 </script>
 </body>
