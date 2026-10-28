@@ -78,6 +78,14 @@ body{background:var(--sky);color:var(--ink);font-family:var(--body);overflow:hid
 .knob{width:58px;height:58px;border-radius:50%;background:var(--banana);border:4px solid var(--ink);box-shadow:0 4px 0 var(--ink);pointer-events:none}
 .freeze{position:fixed;z-index:6;right:calc(max(16px,env(safe-area-inset-right,0px)) + 8px);bottom:calc(env(safe-area-inset-bottom,0px) + 28px);width:120px;height:120px;border-radius:50%;
   background:var(--mint);color:var(--ink);border:4px solid var(--ink);box-shadow:0 6px 0 var(--ink);font-family:var(--display);font-size:22px;touch-action:none;cursor:pointer}
+.peelbtn{position:fixed;z-index:6;right:calc(max(16px,env(safe-area-inset-right,0px)) + 26px);bottom:calc(env(safe-area-inset-bottom,0px) + 162px);width:84px;height:84px;border-radius:50%;
+  background:var(--banana);color:var(--ink);border:4px solid var(--ink);box-shadow:0 5px 0 var(--ink);font-family:var(--display);font-size:19px;touch-action:none;cursor:pointer}
+.peelbtn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+.pa{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 76px);z-index:5;pointer-events:none;width:min(520px,calc(100% - 32px));
+  background:var(--ink);color:var(--paper);border:3px solid var(--banana);border-radius:16px;padding:6px 14px 5px;font-weight:800;font-size:15px;line-height:1.25;text-align:center;box-shadow:0 4px 0 rgba(43,22,80,.35)}
+.pa b{display:block;font-family:var(--display);font-weight:400;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--banana)}
+.pa.show{animation:paIn .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes paIn{from{transform:translateX(-50%) translateY(-20px);opacity:0}to{transform:translateX(-50%);opacity:1}}
 .freeze.on{background:#bfeaff;transform:translateY(4px);box-shadow:0 2px 0 var(--ink)}
 
 .screen{position:fixed;inset:0;z-index:20;display:grid;place-items:center;overflow-y:auto;background:var(--shade);
@@ -205,6 +213,8 @@ body{background:var(--sky);color:var(--ink);font-family:var(--body);overflow:hid
 
 <div class="joy" id="joy" hidden><div class="knob" id="knob"></div></div>
 <button class="freeze" id="freezeBtn" hidden>FREEZE</button>
+<button class="peelbtn" id="peelBtn" hidden>PEEL</button>
+<div class="pa" id="pa" hidden><b>Attention shoppers</b><span id="paText"></span></div>
 
 <div class="screen" id="titleScreen">
   <div class="card">
@@ -220,7 +230,7 @@ body{background:var(--sky);color:var(--ink);font-family:var(--body);overflow:hid
     <div class="pick-wrap"><p class="pick-label">Pick a hat <span id="hatNote"></span></p><div class="hats" id="hats" role="radiogroup" aria-label="Pick a hat"></div></div>
     <div class="play-row"><button class="big-btn" id="playBtn">PLAY!</button><button class="small-btn book-btn" id="bookBtn">Sticker book</button></div>
     <div class="worlds" id="worlds" hidden><p class="pick-label">Or jump to a world you reached</p><div class="world-btns" id="worldBtns"></div></div>
-    <p class="keys" id="keysHint">Move: arrow keys or WASD · Freeze: hold SPACE · Sound: M</p>
+    <p class="keys" id="keysHint">Move: arrow keys or WASD · Freeze: hold SPACE · Drop a peel: P · Sound: M</p>
     <p class="credit">A game by Asa, age 6</p>
   </div>
 </div>
@@ -519,11 +529,11 @@ function makePerson(o = {}) {
   const head = new THREE.Group(); head.position.y = 2.78; g.add(head);
   part('box', skin, 1.2, 1.05, 1.0, 0, 0, 0, head);
   if (o.bald) part('box', hair, 1.26, .3, .5, 0, .2, -.35, head);
-  else { part('box', hair, 1.26, .34, 1.08, 0, .56, -.03, head); part('box', hair, 1.26, .7, .26, 0, .22, -.44, head); }
+  else { part('box', hair, 1.26, .34, 1.08, 0, .56, -.03, head); part('box', hair, 1.23, .7, .25, 0, .22, -.435, head); }
   const pupils = [eye(head, -.25, .1, .5, .34), eye(head, .25, .1, .5, .34)];
   part('box', shade(skin, .85), .18, .3, .2, 0, -.1, .56, head);
   const mouth = part('box', '#7a1f3d', .4, .1, .05, 0, -.33, .51, head);
-  if (o.hat) { part('box', o.hat, 1.28, .14, 1.1, 0, .66, 0, head); part('box', o.hat, 1.1, .1, .5, 0, .62, .7, head); }
+  if (o.hat) { part('box', o.hat, 1.3, .16, 1.12, 0, .8, -.03, head); part('box', o.hat, 1.1, .08, .5, 0, .74, .72, head); }
   if (o.glasses) { part('box', '#2b1650', 1.0, .07, .05, 0, .1, .62, head); }
   if (o.bow) { part('sph', o.bow, .35, .3, .3, -.3, .78, 0, head); part('sph', o.bow, .35, .3, .3, -.02, .78, 0, head); }
   g.userData = { legs, arms, head, mouth, pupils };
@@ -580,6 +590,8 @@ const SFX = {
   woof() { const t = now(); osc('square', 240, 110, t, .14, .32, sfxBus, { f: 700 }); osc('square', 240, 110, t + .2, .14, .32, sfxBus, { f: 700 }); },
   scream() { const t = now(); osc('sawtooth', 650, 1150, t, .6, .22, sfxBus, { type: 'bandpass', f: 1700, q: 2 }); osc('sawtooth', 660, 1170, t, .6, .14, sfxBus, { type: 'bandpass', f: 3000, q: 3 }); },
   fanfare() { const t = now(); [523, 659, 784, 1047].forEach((f, i) => osc('square', f, null, t + i * .11, i === 3 ? .5 : .12, .16, sfxBus, { f: 2500 })); },
+  slip() { const t = now(); osc('sine', 260, 1500, t, .35, .35); osc('triangle', 520, 2600, t + .05, .3, .15); osc('square', 140, 55, t + .4, .22, .25, sfxBus, { f: 600 }); },
+  dingdong() { const t = now(); osc('sine', 784, null, t, .55, .28); osc('sine', 622, null, t + .5, .8, .28); },
   tick() { const t = now(); osc('square', 2000, null, t, .03, .1); },
   whoosh() { const t = now(); osc('sawtooth', 1400, 90, t, .7, .12, sfxBus, { type: 'bandpass', f: 900, q: 1.5 }); noise(t, .5, .25, 800); },
   crunch() { const t = now(); for (let i = 0; i < 3; i++) noise(t + i * .07, .06, .5, 1200); osc('square', 120, 60, t, .2, .2, sfxBus, { f: 600 }); },
@@ -634,6 +646,7 @@ addEventListener('keydown', e => {
   keys[e.code] = true;
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
   if (e.code === 'KeyM' && !e.repeat) toggleMute();
+  if (e.code === 'KeyP' && !e.repeat) dropPeel();
   if ((e.code === 'Enter' || e.code === 'Space') && state === 'title' && $('#bookScreen').hidden && !e.target.closest?.('button')) { e.preventDefault(); startGame(); }
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
@@ -724,6 +737,18 @@ function coneMesh(range, half) {
 const AX = [-24, -12, 0, 12, 24], AZ = [18, -3, -26], CHECK = [-16, 0, 16];
 const HUH = ['Huh?', 'Did that banana just move?', 'Hmm...', 'Weird bananas...', 'Wait a second...'];
 const CHASE = ['HEY! THAT BANANA HAS LEGS!', "BANANAS DON'T WALK!", 'Is that fruit RUNNING?!', 'SECURITY! ROGUE BANANAS!', 'Get back in the fruit bin!'];
+const SLIPS = ['WHOOOAAA!', 'Who left a peel here?!', 'My dignity!', 'Wheee- OOF!', 'I am OK! I am OK!'];
+const CHATTER = ['Where are the pickles?', 'Do we need milk?', 'La la la, shopping...', 'Ooh, a sale!', 'Mystery cans... again?', 'I am looking for socks. In a grocery store.', 'Cereal or pickles? Both!', '*hums the store song*', 'Did I leave the stove on?'];
+const ANNOUNCE = [
+  'A bunch of bananas was seen WALKING in aisle 3. Please do not panic.',
+  'Cleanup on aisle 2. Somebody slipped on a banana peel. Again.',
+  "Today's special: fresh bananas! Some of them have legs.",
+  'Will the owner of a runaway banana please come to the front desk.',
+  'Reminder: fruit is NOT allowed to walk in the store.',
+  'The pickles are on sale. The pickles are always on sale.',
+  'If you see a banana wearing a hat... no, you did not.',
+  'Mystery cans are 2 for 1. Nobody knows what is inside. Not even us.',
+];
 const GIVEUP = ['Huh? Where did it go?', 'I need a nap.', 'Must have been a mango.', "Bananas can't hide... right?"];
 const SPEED = 5.5;
 let S = null, SC = null, state = 'title';
@@ -763,7 +788,7 @@ function nearestNode(w) {
 
 function buildStore() {
   newWorld();
-  S = { t: 0, W: [], boxes: [], tall: [], bounds: { x0: -30, x1: 30, z0: -38, z1: 29 }, fruit: { x0: -12, x1: 12, z0: 19.6, z1: 27.6 }, grace: 2.5, decoys: [] };
+  S = { t: 0, W: [], boxes: [], tall: [], bounds: { x0: -30, x1: 30, z0: -38, z1: 29 }, fruit: { x0: -12, x1: 12, z0: 19.6, z1: 27.6 }, grace: 2.5, decoys: [], peels: [], peelCD: 0, paT: rand(9, 14), chatT: 5 };
   const ft = canvasTex(128, 128, g => { g.fillStyle = '#fff4d6'; g.fillRect(0, 0, 128, 128); g.fillStyle = '#c4f1de'; g.fillRect(0, 0, 64, 64); g.fillRect(64, 64, 64, 64); }, [30, 34]);
   ft.magFilter = THREE.NearestFilter;
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(60, 68), new THREE.MeshLambertMaterial({ map: ft }));
@@ -871,6 +896,23 @@ function stepToward(o, tx, tz, sp, dt) {
 }
 const inRect = (p, r) => p.x > r.x0 && p.x < r.x1 && p.z > r.z0 && p.z < r.z1;
 
+function dropPeel() {
+  if (state !== 'store' || !S || P.inCart || S.peelCD > 0) return;
+  if (S.peels.length >= 3) { const old = S.peels.shift(); world.remove(old.g); }
+  const g = new THREE.Group();
+  if (foodKey === 'banana') {
+    for (let i = 0; i < 4; i++) { const b = part('box', '#ffd93b', .18, .05, .7, 0, .04, 0, g); b.rotation.y = i * Math.PI / 2 + .3; b.translateZ(.32); }
+    part('sph', '#f2c02e', .32, .16, .32, 0, .07, 0, g); part('box', '#6b5a1f', .08, .2, .08, 0, .17, 0, g);
+  } else {
+    part('cyl', F.core, 1.3, .03, 1.05, 0, .02, 0, g);
+    for (let i = 0; i < 5; i++) part('cyl', F.core, .25, .03, .25, rand(-.8, .8), .02, rand(-.7, .7), g);
+    part('sph', '#ffffff', .2, .05, .12, -.2, .04, -.15, g);
+  }
+  const x = P.x - Math.sin(P.face) * 1.0, z = P.z - Math.cos(P.face) * 1.0;
+  g.position.set(x, 0, z); g.rotation.y = rand(0, 6.28); world.add(g);
+  S.peels.push({ g, x, z, t: 25 }); S.peelCD = 1; SFX.pop(.7);
+}
+$('#peelBtn').addEventListener('pointerdown', e => { e.preventDefault(); initAudio(); dropPeel(); });
 function startChase(w) {
   w.state = 'chase'; w.timer = 0; w.sus = 1;
   SFX.alarm(); say(w.g, pick(CHASE), 2.2); toast('RUN!', 1.1, 'danger');
@@ -927,9 +969,29 @@ function updateStore(dt, demo) {
         w.x = hx; w.z = hz;
         if (w.kind === 'cashier') w.state = 'post'; else { w.state = 'walk'; pickNext(w); }
       }
+    } else if (w.state === 'slip') {
+      w.timer -= dt;
+      if (w.timer > 1.9) w.face += dt * 16;
+      if (w.timer <= 0) {
+        w.state = 'return'; w.timer = 6;
+        if (w.kind === 'shopper') w.node = nearestNode(w);
+        say(w.g, pick(['Ow. My elbow.', 'Who put that there?', 'I meant to do that.']), 1.8);
+      }
     } else if (w.state === 'toCheckout') {
       const p = w.path[0];
       if (stepToward(w, p.x, p.z, 2.8, dt)) { w.path.shift(); if (!w.path.length) { w.face = Math.PI; startScan(w, w.cx); return; } }
+    }
+    if ((w.state === 'walk' || w.state === 'chase' || w.state === 'return' || w.state === 'browse') && !demo) {
+      for (let i = 0; i < S.peels.length; i++) {
+        const pl = S.peels[i];
+        if (Math.hypot(pl.x - w.x, pl.z - w.z) < .9) {
+          const wasChasing = w.state === 'chase';
+          world.remove(pl.g); S.peels.splice(i, 1);
+          w.state = 'slip'; w.timer = 2.6; w.sus = 0; SFX.slip(); say(w.g, pick(SLIPS), 1.8);
+          if (wasChasing) toast('SPLAT!<small>They slipped! Run!</small>', 1.4);
+          break;
+        }
+      }
     }
     // noticing the bananas
     const watching = !demo && !P.inCart && S.grace <= 0 && (w.state === 'walk' || w.state === 'browse' || w.state === 'post');
@@ -942,10 +1004,11 @@ function updateStore(dt, demo) {
       } else w.sus = Math.max(0, w.sus - dt * .3);
     } else if (w.state !== 'chase') w.sus = Math.max(0, w.sus - dt * .5);
     // visuals
-    w.g.position.set(w.x, 0, w.z); w.g.rotation.y = w.face;
+    w.fall = lerp(w.fall || 0, w.state === 'slip' && w.timer > .5 ? 1 : 0, Math.min(1, dt * (w.state === 'slip' ? 10 : 4)));
+    w.g.position.set(w.x, w.fall * .25, w.z); w.g.rotation.set(-w.fall * 1.45, w.face, 0, 'YXZ');
     const moved = Math.hypot(w.x - w.lx, w.z - w.lz); w.lx = w.x; w.lz = w.z;
     w.ph += moved * 2.2; animPerson(w.g, w.ph, moved > .001 ? (w.state === 'chase' ? 1 : .6) : 0);
-    w.cone.visible = w.state !== 'toCheckout' && w.state !== 'return' && !(P.inCart);
+    w.cone.visible = w.state !== 'toCheckout' && w.state !== 'return' && w.state !== 'slip' && !(P.inCart);
     const s = w.state === 'chase' ? 1 : w.sus;
     w.cone.material.color.setRGB(1, lerp(.95, .23, s), lerp(.42, .23, s));
     w.cone.material.opacity = .26 + s * .2;
@@ -957,7 +1020,43 @@ function updateStore(dt, demo) {
       c.rotation.y = lerpAng(c.rotation.y, w.face, k);
     }
   }
+  for (let i = 0; i < S.W.length; i++) {
+    const a = S.W[i]; if (a.state === 'slip' || a.state === 'arrived') continue;
+    for (let j = i + 1; j < S.W.length; j++) {
+      const b = S.W[j]; if (b.state === 'slip' || b.state === 'arrived') continue;
+      const dx = b.x - a.x, dz = b.z - a.z, d = Math.hypot(dx, dz);
+      if (d < 1.25 && d > 1e-4) { const k = (1.25 - d) / 2, nx = dx / d, nz = dz / d; a.x -= nx * k; a.z -= nz * k; b.x += nx * k; b.z += nz * k; }
+    }
+    for (const o of S.W) {
+      if (!o.cart || o === a || o.state === 'chase') continue;
+      const c = o.cart.position, dx = a.x - c.x, dz = a.z - c.z, d = Math.hypot(dx, dz);
+      if (d < 1.5 && d > 1e-4) { a.x = c.x + dx / d * 1.5; a.z = c.z + dz / d * 1.5; }
+    }
+    collide(a, .6, S.boxes, S.bounds);
+    a.g.position.x = a.x; a.g.position.z = a.z;
+  }
+  if (!demo && !P.inCart) for (const w of S.W) {
+    if (w.state === 'slip') continue;
+    const dx = P.x - w.x, dz = P.z - w.z, d = Math.hypot(dx, dz);
+    if (d < 1.2 && d > 1e-4) { P.x = w.x + dx / d * 1.2; P.z = w.z + dz / d * 1.2; }
+  }
   if (demo) { updateBunch(dt, false, false); storeCam(dt, true); return; }
+  // peels go stale, announcements, chatter
+  S.peelCD -= dt;
+  for (let i = S.peels.length - 1; i >= 0; i--) { const pl = S.peels[i]; pl.t -= dt; if (pl.t <= 0) { world.remove(pl.g); S.peels.splice(i, 1); } }
+  S.paT -= dt;
+  if (S.paT <= 0) {
+    S.paT = rand(20, 28); const pa = $('#pa');
+    $('#paText').textContent = sub(pick(ANNOUNCE)); pa.hidden = false; pa.classList.remove('show'); void pa.offsetWidth; pa.classList.add('show'); SFX.dingdong();
+    S.paHide = 5.5;
+  }
+  if (S.paHide > 0) { S.paHide -= dt; if (S.paHide <= 0) $('#pa').hidden = true; }
+  S.chatT -= dt;
+  if (S.chatT <= 0) {
+    S.chatT = rand(4, 7);
+    const near = S.W.filter(w => (w.state === 'walk' || w.state === 'browse') && w.sus < .2 && Math.hypot(w.x - P.x, w.z - P.z) < 16);
+    if (near.length) say(pick(near).g, pick(CHATTER), 2);
+  }
   // jump into a cart
   if (!P.inCart) {
     for (const w of S.W) {
@@ -1631,6 +1730,14 @@ function updateRoll(dt) {
     else if (m.kind === 'cat' || m.kind === 'dog') it.g.position.y = spd > 0 ? Math.abs(Math.sin(m.ph * 1.5)) * .15 * it.s : 0;
     else if (m.kind === 'alien' || m.kind === 'thing' || m.kind === 'astro') it.g.position.y = Math.sin(m.ph * .5) * .15 * it.s;
   }
+  for (let i = 0; i < H.movers.length; i++) {
+    const a = H.movers[i].it; if (a.taken) continue;
+    for (let j = i + 1; j < H.movers.length; j++) {
+      const b = H.movers[j].it; if (b.taken) continue;
+      const dx = b.x - a.x, dz = b.z - a.z, d = Math.hypot(dx, dz), min = (a.s + b.s) * .42;
+      if (d < min && d > 1e-4) { const k = (min - d) / 2, nx = dx / d, nz = dz / d; a.x -= nx * k; a.z -= nz * k; b.x += nx * k; b.z += nz * k; a.g.position.x = a.x; a.g.position.z = a.z; b.g.position.x = b.x; b.g.position.z = b.z; }
+    }
+  }
   // roll things up (or bonk into things that are too big)
   for (const it of H.items) {
     if (it.taken) continue;
@@ -1911,8 +2018,8 @@ function winGame() {
 }
 /* ---------- flow ---------- */
 const HINTS = {
-  store: isTouch ? "Don't move in the <b>yellow</b> light! Hold <b>FREEZE</b> to look like a real banana. Get into a <b>shopping cart</b>."
-                 : "Don't move in the <b>yellow</b> light! Hold <b>SPACE</b> to freeze. Sneak into a <b>shopping cart</b>.",
+  store: isTouch ? "Don't move in the <b>yellow</b> light! Hold <b>FREEZE</b> to look like a real banana. <b>PEEL</b> makes people slip. Get into a <b>shopping cart</b>."
+                 : "Don't move in the <b>yellow</b> light! Hold <b>SPACE</b> to freeze. <b>P</b> drops a slippery peel. Sneak into a <b>shopping cart</b>.",
   scan: 'Look like a real banana. <b>Hold still</b> until you hear the big BEEP!',
 };
 const LVL = { store: 'Grocery Store', scan: 'Checkout!' };
@@ -1929,6 +2036,8 @@ function setState(s) {
   $('#scanPanel').hidden = s !== 'scan';
   joyEl.hidden = !(isTouch && (s === 'store' || s === 'roll'));
   fBtn.hidden = !(isTouch && (s === 'store' || s === 'scan'));
+  $('#peelBtn').hidden = !(isTouch && s === 'store');
+  if (s !== 'store') $('#pa').hidden = true;
   if (s !== 'store' && s !== 'roll') { joy.x = joy.y = 0; joy.id = null; knob.style.transform = ''; }
   if (!play) { $('#toast').hidden = true; toastT = 0; }
   if (s === 'title') { syncContinue(); renderHats(); }
