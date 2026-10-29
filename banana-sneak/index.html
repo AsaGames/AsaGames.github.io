@@ -60,6 +60,12 @@ body{background:var(--sky);color:var(--ink);font-family:var(--body);overflow:hid
   font-family:var(--display);font-size:clamp(30px,7vw,52px);line-height:1;color:var(--paper);-webkit-text-stroke:2px var(--ink);paint-order:stroke fill;text-shadow:0 5px 0 var(--ink);font-variant-numeric:tabular-nums}
 #pow sup{font-size:.55em;vertical-align:.8em;color:var(--banana)}
 #pow small{display:block;margin-top:6px;font-size:.36em;color:var(--banana);-webkit-text-stroke:1px var(--ink)}
+.flash{position:fixed;inset:0;z-index:9;pointer-events:none;background:#fff;opacity:0}
+.flash.go{animation:flash .5s ease-out}
+@keyframes flash{0%{opacity:.9}100%{opacity:0}}
+.skip{position:fixed;z-index:12;right:calc(max(16px,env(safe-area-inset-right,0px)) + 4px);bottom:calc(env(safe-area-inset-bottom,0px) + 18px);
+  font-family:var(--display);font-size:18px;color:var(--ink);background:var(--paper);border:3px solid var(--ink);border-radius:14px;padding:5px 16px 2px;box-shadow:0 4px 0 var(--ink);cursor:pointer;opacity:.85}
+.skip:focus-visible{outline:4px solid var(--grape);outline-offset:3px}
 #bubbles{position:fixed;inset:0;pointer-events:none;z-index:4;overflow:hidden}
 .bubble{position:absolute;left:0;top:0;background:var(--paper);color:var(--ink);border:3px solid var(--ink);border-radius:16px;padding:3px 10px 1px;font-weight:800;font-size:15px;white-space:nowrap;box-shadow:0 3px 0 var(--ink)}
 .bubble::after{content:"";position:absolute;left:50%;bottom:-11px;margin-left:-8px;border:8px solid transparent;border-top-color:var(--ink);border-bottom:0}
@@ -88,6 +94,7 @@ body{background:var(--sky);color:var(--ink);font-family:var(--body);overflow:hid
 @keyframes paIn{from{transform:translateX(-50%) translateY(-20px);opacity:0}to{transform:translateX(-50%);opacity:1}}
 .freeze.on{background:#bfeaff;transform:translateY(4px);box-shadow:0 2px 0 var(--ink)}
 
+#bookScreen{z-index:30!important}
 .screen{position:fixed;inset:0;z-index:20;display:grid;place-items:center;overflow-y:auto;background:var(--shade);
   padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 .card{background:var(--paper);color:var(--ink);border:4px solid var(--ink);border-radius:30px;box-shadow:0 10px 0 var(--ink);padding:22px 24px 24px;width:100%;max-width:520px;text-align:center;display:grid;gap:12px;justify-items:center}
@@ -138,21 +145,26 @@ body{background:var(--sky);color:var(--ink);font-family:var(--body);overflow:hid
 .sticker figcaption span{display:block;font-size:11px;color:var(--pink);font-variant-numeric:tabular-nums}
 .sticker.rare{background:#fff6c7;border-color:#c98a00;box-shadow:0 4px 0 #c98a00}
 .sticker.rare figcaption::before{content:"RARE";display:block;font-family:var(--display);font-size:11px;letter-spacing:1px;color:#c98a00}
-.sticker.boss{background:#ffe0ec;border-color:var(--pink);box-shadow:0 4px 0 var(--pink)}
-.sticker.boss figcaption::before{content:"BOSS";display:block;font-family:var(--display);font-size:11px;letter-spacing:1px;color:var(--pink)}
 .sticker.locked{background:#efeaf7;box-shadow:0 4px 0 #b9b0cc;border-color:#b9b0cc;transform:none}
 .sticker.locked img{filter:brightness(0);opacity:.18}
 .sticker.locked figcaption{color:#8a80a3}
 .got em{font-style:normal;font-family:var(--body);font-weight:800;font-size:13px;color:var(--paper);background:var(--pink);border-radius:999px;padding:1px 8px;margin-left:8px;vertical-align:3px}
-.bosspill{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 124px);z-index:5;pointer-events:none;max-width:calc(100% - 32px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+.timerpill{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 124px);z-index:5;pointer-events:none;max-width:calc(100% - 32px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   font-weight:800;font-size:14px;color:var(--paper);background:var(--danger);border:3px solid var(--ink);border-radius:999px;padding:2px 12px 0;box-shadow:0 3px 0 var(--ink)}
-.bosspill.done{background:var(--mint);color:var(--ink)}
-@media (max-width:560px){.bosspill{top:calc(env(safe-area-inset-top,0px) + 142px);font-size:12px}}
+.timerpill.done{background:var(--mint);color:var(--ink)}
+@media (max-width:560px){.timerpill{top:calc(env(safe-area-inset-top,0px) + 142px);font-size:12px}}
 .keys{margin:0;font-size:14px;font-weight:600;opacity:.8}
 .credit{margin:0;font-family:var(--display);font-size:16px;color:var(--grape)}
 .caught-title{font-family:var(--display);font-weight:400;font-size:64px;margin:0;color:var(--danger);-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:0 6px 0 var(--ink);transform:rotate(-4deg)}
 .card p{margin:0;font-size:18px;font-weight:600;line-height:1.3;text-wrap:balance}
 .eyebrow{font-family:var(--display);font-size:16px!important;letter-spacing:2px;text-transform:uppercase;color:var(--grape)}
+.endcard{margin-top:60px;position:relative;z-index:1}
+.portrait{width:132px;height:132px;margin-top:-84px;background:radial-gradient(circle at 50% 40%,#fff6c7 0 45%,var(--banana) 46%);border:4px solid var(--ink);border-radius:50%;box-shadow:0 6px 0 var(--ink)}
+.story{font-size:17px!important}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.confetti i{position:absolute;top:-24px;width:10px;height:16px;border-radius:3px;animation:fall linear infinite}
+@keyframes fall{to{transform:translateY(calc(100vh + 40px)) rotate(720deg)}}
+@media (prefers-reduced-motion:reduce){.confetti{display:none}}
 .rank{font-family:var(--display);font-weight:400;font-size:clamp(34px,8vw,52px);line-height:1;margin:0;color:var(--banana);-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:0 5px 0 var(--ink);text-wrap:balance}
 .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%}
 .stats div{background:#fff1b8;border:3px solid var(--ink);border-radius:16px;padding:8px 4px 6px;display:grid;gap:2px}
@@ -201,9 +213,10 @@ body{background:var(--sky);color:var(--ink);font-family:var(--body);overflow:hid
   <div class="goal"><span id="goalText">Grow to 1.8 m to eat the WHOLE HOUSE!</span><div class="track"><i id="goalBar"></i></div></div>
 </div>
 <div class="got" id="got" hidden></div>
-<div class="bosspill" id="bossPill" hidden></div>
 <div id="toast" hidden></div>
 <div id="pow" hidden></div>
+<div class="flash" id="flash" aria-hidden="true"></div>
+<button class="skip" id="skipBtn" hidden>Skip</button>
 
 <div class="panel" id="scanPanel" hidden>
   <div class="scan-title" id="scanTitle">Get ready...</div>
@@ -214,7 +227,7 @@ body{background:var(--sky);color:var(--ink);font-family:var(--body);overflow:hid
 <div class="joy" id="joy" hidden><div class="knob" id="knob"></div></div>
 <button class="freeze" id="freezeBtn" hidden>FREEZE</button>
 <button class="peelbtn" id="peelBtn" hidden>PEEL</button>
-<div class="bosspill done" id="disgPill" hidden></div>
+<div class="timerpill done" id="disgPill" hidden></div>
 <div class="pa" id="pa" hidden><b>Attention shoppers</b><span id="paText"></span></div>
 
 <div class="screen" id="titleScreen">
@@ -279,16 +292,20 @@ body{background:var(--sky);color:var(--ink);font-family:var(--body);overflow:hid
 </div>
 
 <div class="screen" id="endScreen" hidden>
-  <div class="card">
-    <p class="eyebrow">You did it!</p>
+  <div class="confetti" id="confetti" aria-hidden="true"></div>
+  <div class="card endcard">
+    <img class="portrait" id="endPortrait" alt="" width="132" height="132">
+    <p class="eyebrow">The end... for now</p>
     <h2 class="rank" id="rank">You ate the WHOLE UNIVERSE!</h2>
+    <p class="story" id="endStory"></p>
     <div class="stats">
-      <div><b id="stSize">1 m</b><span>banana ball</span></div>
       <div><b id="stCount">0</b><span>things rolled up</span></div>
-      <div><b id="stChaos">0%</b><span>worlds eaten</span></div>
+      <div><b id="stStickers">0</b><span>stickers found</span></div>
+      <div><b id="stChaos">9/9</b><span>worlds eaten</span></div>
     </div>
     <p class="list" id="stList"></p>
-    <div class="play-row"><button class="big-btn" id="againBtn">Play again</button><button class="small-btn book-btn" id="bookBtn2">Sticker book</button></div>
+    <button class="big-btn" id="againBtn">Play again</button>
+    <div class="play-row"><button class="small-btn" id="bookBtn2">Sticker book</button><button class="small-btn" id="worldsBtn">Pick a world</button></div>
   </div>
 </div>
 
@@ -655,6 +672,7 @@ addEventListener('keydown', e => {
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
   if (e.code === 'KeyM' && !e.repeat) toggleMute();
   if (e.code === 'KeyP' && !e.repeat) dropPeel();
+  if (e.code === 'Enter' && (state === 'finale' || state === 'spit')) { e.preventDefault(); skipEnding(); }
   if ((e.code === 'Enter' || e.code === 'Space') && state === 'title' && $('#bookScreen').hidden && !e.target.closest?.('button')) { e.preventDefault(); startGame(); }
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
@@ -880,7 +898,7 @@ function buildStore() {
   P.x = 0; P.z = 23.5; P.vx = P.vz = 0; P.face = Math.PI; P.lie = 0; P.inCart = null; P.moving = false;
   P.obj = makeFood(foodKey, true); P.obj.scale.setScalar(F.scale); world.add(P.obj);
   P.disguise = 0; P.glasses = null;
-  makeStoreDog(); S.kits = []; S.kitT = 0; spawnKit(); spawnKit();
+  S.kits = []; S.kitT = 0; spawnKit(); spawnKit();
   P.shadow = new THREE.Mesh(new THREE.CircleGeometry(.9, 20), new THREE.MeshBasicMaterial({ color: '#2b1650', transparent: true, opacity: .2, depthWrite: false }));
   P.shadow.rotation.x = -Math.PI / 2; world.add(P.shadow);
   camera.position.set(0, 10 * camMul, 34.5); camera.lookAt(0, 0, 23.5);
@@ -946,53 +964,6 @@ function updateKits(dt) {
     P.disguise -= dt; pill.hidden = false; pill.textContent = `DISGUISED: ${Math.ceil(P.disguise)}s`;
     if (P.disguise <= 0) { P.obj.userData.body.remove(P.glasses); P.glasses = null; pill.hidden = true; toast('Your disguise fell off!', 1.4); SFX.boing(); }
   }
-}
-/* Sir Sniffs-a-Lot, the store dog: freezing does not fool a nose */
-function makeStoreDog() {
-  const g = new THREE.Group(); buildDog(g);
-  part('box', '#ff3b3b', .72, .12, .16, 0, 1.02, .5, g); part('sph', '#ffd93b', .12, .12, .06, 0, .92, .58, g);
-  g.scale.setScalar(1.25); world.add(g);
-  const ring = new THREE.Mesh(new THREE.RingGeometry(4.1, 4.5, 48), new THREE.MeshBasicMaterial({ color: '#7ccf3a', transparent: true, opacity: .45, depthWrite: false, side: THREE.DoubleSide }));
-  ring.rotation.x = -Math.PI / 2; ring.position.y = .06; world.add(ring);
-  const node = { i: 3, j: 1 };
-  S.dog = { g, ring, x: AX[node.i], z: AZ[node.j], face: 0, node, state: 'wander', timer: 0, sniff: 0, ph: 0, fall: 0, lx: 0, lz: 0, kind: 'dog' };
-  pickNext(S.dog);
-}
-function dogBack(D, line) { D.state = 'wander'; D.node = nearestNode(D); pickNext(D); if (line) say(D.g, line, 1.6, 2.4); }
-function updateDog(dt, demo, inFruit) {
-  const D = S.dog; if (!D) return false;
-  const dP = Math.hypot(P.x - D.x, P.z - D.z);
-  const smell = !demo && !P.inCart && S.grace <= 0 && !inFruit && dP < 4.4;
-  if (D.state === 'wander') {
-    if (stepToward(D, AX[D.target.i], AZ[D.target.j], 3.4, dt)) { D.node = D.target; pickNext(D); }
-    if (smell) { D.state = 'sniff'; D.sniff = 0; say(D.g, '*sniff sniff... SNIFF*', 1.5, 2.4); }
-  } else if (D.state === 'sniff') {
-    stepToward(D, P.x, P.z, 1.8, dt);
-    D.sniff += dt * (smell ? 1 : -1.5);
-    if (D.sniff >= 1.5) {
-      D.state = 'bark'; D.timer = 0; SFX.woof(); say(D.g, 'WOOF WOOF! (I FOUND A BANANA!)', 2, 2.4);
-      toast('THE DOG SMELLS YOU!<small>Run! Hide in the fruit stand or drop a peel!</small>', 1.8, 'danger');
-    } else if (D.sniff <= 0) dogBack(D, '*confused sniff*');
-  } else if (D.state === 'bark') {
-    D.timer += dt; stepToward(D, P.x, P.z, 4.6, dt);
-    if (Math.random() < dt * 2.5) SFX.woof();
-    for (const w of S.W) if ((w.state === 'walk' || w.state === 'browse') && Math.hypot(w.x - P.x, w.z - P.z) < 12) { w.sus += dt * .45; if (w.sus >= 1) startChase(w); }
-    if (dP < 1.3 && !demo) { caught(D); return true; }
-    if (inFruit || P.inCart || D.timer > 8) dogBack(D, inFruit ? '*sniffs a pineapple instead*' : '*pant pant* ...where did it go?');
-  } else if (D.state === 'slip') {
-    D.timer -= dt; if (D.timer > 1.9) D.face += dt * 16;
-    if (D.timer <= 0) dogBack(D, '*embarrassed dog noises*');
-  }
-  if (D.state !== 'slip' && !demo) for (let i = 0; i < S.peels.length; i++) {
-    const pl = S.peels[i];
-    if (Math.hypot(pl.x - D.x, pl.z - D.z) < .9) { world.remove(pl.g); S.peels.splice(i, 1); D.state = 'slip'; D.timer = 2.4; SFX.slip(); say(D.g, 'YIPE! *slide*', 1.6, 2.4); break; }
-  }
-  D.fall = lerp(D.fall, D.state === 'slip' && D.timer > .5 ? 1 : 0, Math.min(1, dt * 8));
-  const moved = Math.hypot(D.x - D.lx, D.z - D.lz); D.lx = D.x; D.lz = D.z; D.ph += moved * 3;
-  D.g.position.set(D.x, Math.abs(Math.sin(D.ph)) * .12 + D.fall * .5, D.z); D.g.rotation.set(0, D.face, D.fall * 2.6, 'YXZ');
-  D.ring.position.x = D.x; D.ring.position.z = D.z; D.ring.visible = D.state !== 'slip';
-  D.ring.material.color.set(D.state === 'bark' ? '#ff3b3b' : D.state === 'sniff' ? '#ff8a00' : '#7ccf3a');
-  return false;
 }
 function dropPeel() {
   if (state !== 'store' || !S || P.inCart || S.peelCD > 0) return;
@@ -1118,7 +1089,6 @@ function updateStore(dt, demo) {
       c.rotation.y = lerpAng(c.rotation.y, w.face, k);
     }
   }
-  if (updateDog(dt, demo, inFruit)) return;
   for (let i = 0; i < S.W.length; i++) {
     const a = S.W[i]; if (a.state === 'slip' || a.state === 'arrived') continue;
     for (let j = i + 1; j < S.W.length; j++) {
@@ -1256,7 +1226,7 @@ function updateScan(dt) {
 function caught(w) {
   setState('caught'); playSong(null); SFX.wahwah();
   const who = w && w.kind === 'cashier' ? 'The cashier' : 'A shopper';
-  $('#caughtMsg').textContent = w && w.kind === 'dog' ? 'Sir Sniffs-a-Lot the store dog licked you! Everyone saw. They put you back with the other fruit.' : `${who} caught you! They put you back with the other fruit.`;
+  $('#caughtMsg').textContent = `${who} caught you! They put you back with the other fruit.`;
   setTimeout(() => $('#retryBtn').focus(), 50);
 }
 
@@ -1305,12 +1275,11 @@ function startRide() {
   // speed bumps
   const bumps = [-40, -95, -150];
   for (const z of bumps) { part('box', '#ffd93b', 15.8, .4, 1.4, 0, .2, z, world); for (let k = 0; k < 7; k++) part('box', '#2b1650', 1, .41, 1.42, -6.6 + k * 2.2, .2, z, world); }
-  // other cars, and a dog who REALLY wants to know what's in that bag
+  // other cars on the road
   const others = [];
   for (let i = 0; i < 5; i++) { const o = new THREE.Group(); UB.car(o); o.scale.setScalar(3); o.position.set(-4, 0, -40 - i * 50); world.add(o); others.push(o); }
-  const dog = new THREE.Group(); buildDog(dog); dog.scale.setScalar(1.8); dog.position.set(8, 0, -62); dog.rotation.y = Math.PI; world.add(dog);
   const car = makeRideCar(); car.g.position.set(4, 0, 12); world.add(car.g);
-  RD = { car, others, dog, bumps, nb: 0, warned: -1, t: 0, z: 12, v: 24, bY: 0, bV: 0, hY: 0, hV: 0, honkT: 1.2, dogT: 0, done: false, doneT: 0, held: 0, flew: 0 };
+  RD = { car, others, bumps, nb: 0, warned: -1, t: 0, z: 12, v: 24, bY: 0, bV: 0, hY: 0, hV: 0, honkT: 1.2, done: false, doneT: 0, held: 0, flew: 0 };
   camera.position.set(14, 8, 32);
   toast(`GOING HOME!<small>Hold ${isTouch ? 'FREEZE' : 'SPACE'} on the bumps so you don't fly out of the bag!</small>`, 2.8);
 }
@@ -1333,11 +1302,6 @@ function updateRide(dt) {
   const f = R.car.food; f.position.y = .9 + R.hY / 3; f.rotation.x = R.hY > .05 ? R.t * 9 : 0;
   R.car.driver.userData.head.rotation.y = Math.sin(R.t * 2) * .3;
   for (const o of R.others) o.position.z += 16 * dt;
-  // the dog runs alongside for a bit
-  if (R.z < -45 && R.z > -120) {
-    R.dogT += dt; R.dog.position.z = R.z + 3 + Math.sin(R.dogT * 2); R.dog.position.y = Math.abs(Math.sin(R.dogT * 14)) * .4;
-    if (!R.dogSaid) { R.dogSaid = true; SFX.woof(); say(R.dog, 'WOOF! (Is that a BANANA in that bag?!)', 2.4, 3.2); }
-  } else if (R.z <= -120) R.dog.position.y = 0;
   R.honkT -= dt;
   if (R.honkT <= 0 && !R.done) { R.honkT = rand(3, 5); SFX.honk(); say(R.car.driver, pick(['La la la, going home!', 'Beep beep!', 'Bananas for dinner!', 'What a nice day for a drive!']), 1.8, 1.4); }
   const k = Math.min(1, dt * 3);
@@ -1636,23 +1600,6 @@ Object.assign(UB, {
   whitedwarf: g => { glow('sph', '#ffffff', 1.2, 1.2, 1.2, 0, 1, 0, g); glow('sph', '#dff6ff', 1.8, 1.8, 1.8, 0, 1, 0, g, .35); },
   supergiant: g => { glow('sph', '#ff3b3b', 1.9, 1.9, 1.9, 0, 1, 0, g); glow('sph', '#ff8a00', 2.4, 2.4, 2.4, 0, 1, 0, g, .25); glow('sph', '#ffd93b', 1.2, 1.2, 1.2, .3, 1.3, .6, g, .5); },
 });
-UB.squid = g => { const c = '#b04dff'; part('sph', c, 1.1, 1.4, 1.1, 0, 1.6, 0, g); eye(g, -.22, 1.6, .5, .32); eye(g, .22, 1.6, .5, .32); for (let i = 0; i < 8; i++) { const a = i / 8 * 6.28, t = part('cyl', c, .14, 1.1, .14, Math.sin(a) * .42, .55, Math.cos(a) * .42, g); t.rotation.set(Math.cos(a) * .35, 0, -Math.sin(a) * .35); } };
-UB.kraken = g => { UB.squid(g); for (let i = 0; i < 12; i++) glow('sph', pick(['#9fe6ff', '#ff9ecf', '#fff36b']), .08, .08, .08, rand(-.5, .5), rand(1.2, 2.2), .48, g); };
-UB.cosmiccat = g => { buildCat(g); for (let i = 0; i < 14; i++) glow('sph', pick(['#ffffff', '#fff36b', '#9fe6ff']), .06, .06, .06, rand(-.25, .25), rand(.3, .9), rand(-.4, .6), g); };
-const BOSSES = {
-  house: { name: 'Giant Grandma', build: g => { person(g, { hair: '#e6e6e6', glasses: true, bow: '#ff5fa2', shirt: '#b39cff' }); g.children[0].scale.setScalar(.45); }, kind: 'person', y: 1.4,
-    lines: ['Come here and give Grandma a HUG!', 'Who is a cute little banana?', 'Have you eaten? You look HUNGRY.'] },
-  store: { name: 'The Store Manager', build: g => { person(g, { shirt: '#2fbf71', hat: '#ff3b3b', glasses: true }); g.children[0].scale.setScalar(.45); }, kind: 'person', y: 1.4,
-    lines: ['NO ROLLING IN MY STORE!', 'Cleanup on aisle EVERYWHERE!', 'You did not PAY for those!'] },
-  street: { name: 'Biscuit the Giant Dog', build: UB.dog, kind: 'dog', y: 2.1, lines: ['WOOF! (I want to PLAY!)', '*GIANT SNIFF*', 'WOOF WOOF! (Is that a ball?!)'] },
-  town: { name: 'Mega Kitty', build: UB.cat, kind: 'cat', y: 1.9, lines: ['MEOW. (I am the queen of this town.)', '*knocks a bus off a table*', 'Mrrrow! (Chase me!)'] },
-  mountains: { name: 'The Yeti', build: g => { person(g, { skin: '#dff6ff', hair: '#ffffff', shirt: '#f4f7fb', pants: '#e6f2ff' }); g.children[0].scale.setScalar(.45); }, kind: 'person', y: 1.4,
-    lines: ['RAAAWR! Snowball time!', 'This is MY mountain!', 'Yeti want banana smoothie!'] },
-  world: { name: 'The Giant Squid', build: UB.squid, kind: 'whale', y: 2.6, lines: ['Blub blub! Eight arms for hugging!', 'INK ATTACK!', 'Blub! (You look tasty.)'] },
-  space: { name: 'The Alien Mothership', build: UB.ufo, kind: 'alien', y: 2.2, lines: ['WE HAVE COME FOR YOUR BANANAS.', 'Beam it up! BEAM IT UP!', 'Resistance is... fruity.'] },
-  galaxy: { name: 'The Space Kraken', build: UB.kraken, kind: 'whale', y: 2.6, lines: ['SPACE TENTACLES!', 'I eat stars for breakfast!', 'Blub... in SPACE.'] },
-  universe: { name: 'The Cosmic Cat', build: UB.cosmiccat, kind: 'cat', y: 1.9, lines: ['I knock planets off tables.', 'MEOW. The universe is MY box.', '*purrs in outer space*'] },
-};
 UB.boombox = g => {
   part('box', '#2b1650', 1.6, .9, .5, 0, .45, 0, g); part('box', '#c0c7cf', 1.2, .08, .08, 0, 1.05, 0, g);
   for (const x of [-.4, .4]) { part('cyl', '#7b4dff', .55, .06, .55, x, .45, .26, g).rotation.x = Math.PI / 2; glow('cyl', '#3fe0b0', .25, .07, .25, x, .45, .28, g).rotation.x = Math.PI / 2; }
@@ -1779,14 +1726,6 @@ function makeThing(d, s) {
   if (d.unit) g.scale.setScalar(s); else g.scale.setScalar((d.scale || 1) * s / baseS(d));
   return g;
 }
-function spawnBoss(st) {
-  const b = BOSSES[st.key], s = st.rEnd * .5, L = st.L;
-  const d = { name: b.name, s, count: 1, build: b.build, unit: true, mover: b.kind, y: b.y, walk: 1, run: 4.5 / Math.max(1, s) * 1.2 };
-  const it = spawnThing(d, L * .55, -L * .55, s); it.boss = b;
-  const m = H.movers.find(o => o.it === it); m.boss = b; m.run = 3 + s * .6;
-  const mk = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX_EX, depthTest: false })); mk.position.y = b.y * .9 + .5; mk.scale.set(.7, .7, 1); mk.renderOrder = 10; it.g.add(mk);
-  H.boss = it;
-}
 function spawnThing(d, x, z, sz) {
   const s = sz || pickSize(d), g = makeThing(d, s);
   g.position.set(x, 0, z); g.rotation.y = rand(0, Math.PI * 2); world.add(g);
@@ -1815,7 +1754,6 @@ function buildStage(ix) {
     }
     spawnThing(d, x, z); placed.push({ x, z, s });
   }
-  if (BOSSES[st.key]) spawnBoss(st);
   for (let k = 0; k < 2; k++) {
     const a = rand(0, 6.28), r = rand(st.L * .25, st.L * .6);
     const it = spawnThing({ name: 'boombox', s: st.r0 * .5, count: 1, build: UB.boombox, unit: true, spin: .8 }, Math.sin(a) * r, Math.cos(a) * r, st.r0 * .5);
@@ -1851,10 +1789,6 @@ function takeItem(it) {
     const e = KINDS[m.kind].eat;
     if (e && SFX[e]) SFX[e](1);
     if (m.kind === 'person' || m.kind === 'astro' || m.kind === 'alien') say(BALL.root, `${it.name}: "AAAAAH!"`, 2, B.r + 1);
-  }
-  if (it.boss) {
-    H.boss = null; SFX.fanfare(); toast(`BOSS EATEN!<small>${it.name}</small>`, 2);
-    $('#bossPill').classList.add('done'); $('#bossPill').textContent = sub(`You ate ${it.name}!`);
   }
   if (B.r >= H.st.rEnd) startTransition();
 }
@@ -1905,7 +1839,7 @@ function updateRoll(dt) {
   const damp = Math.pow(inp.x || inp.z ? .4 : .15, dt); B.vx *= damp; B.vz *= damp;
   let sp = Math.hypot(B.vx, B.vz); if (sp > maxV) { B.vx *= maxV / sp; B.vz *= maxV / sp; sp = maxV; }
   B.x += B.vx * dt; B.z += B.vz * dt;
-  const b = H.bounds; H.bonkT -= dt; H.hitT = (H.hitT || 0) - dt;
+  const b = H.bounds; H.bonkT -= dt;
   const wall = (hit) => { if (hit && sp > 3.5 && H.bonkT <= 0) { SFX.bonk(); H.bonkT = .35; } };
   if (B.x < b.x0 + B.r) { B.x = b.x0 + B.r; wall(B.vx < -1); B.vx *= -.4; }
   if (B.x > b.x1 - B.r) { B.x = b.x1 - B.r; wall(B.vx > 1); B.vx *= -.4; }
@@ -1923,10 +1857,7 @@ function updateRoll(dt) {
       if (m.cool <= 0 && Math.random() < dt * .4 && d < 12 + B.r * 4) { m.cool = 5; say(it.g, pick(['PARTY!', 'Woo-hoo!', '*busts a move*', 'I LOVE this song!', 'Dance with me, banana!']), 1.6, m.y); }
       continue;
     }
-    if (m.boss && !edible) {
-      tx = -dx / d; tz = -dz / d; spd = (5 + B.r * 2) * .45;
-      if (m.cool <= 0 && d < 14 + B.r * 4) { m.cool = 5; say(it.g, pick(m.boss.lines), 2.2, m.y); SFX.huh(); }
-    } else if (edible && d < 10 + B.r * 3) {
+    if (edible && d < 10 + B.r * 3) {
       tx = dx / d; tz = dz / d; spd = m.run;
       if (m.cool <= 0 && K.scared.length && d < 6 + B.r * 3) { m.cool = 4; say(it.g, pick(K.scared), 1.6, m.y); if (K.snd) SFX[K.snd](); }
     } else {
@@ -1960,7 +1891,6 @@ function updateRoll(dt) {
     const dx = B.x - it.x, dz = B.z - it.z, d = Math.hypot(dx, dz), reach = B.r + it.s * .55;
     if (d >= reach) continue;
     if (it.s <= B.r * .85) { takeItem(it); if (trans) return; continue; }
-    if (it.boss) { bossHit(it, d > 1e-4 ? dx / d : 1, d > 1e-4 ? dz / d : 0, reach); continue; }
     const nx = d > 1e-4 ? dx / d : 1, nz = d > 1e-4 ? dz / d : 0;
     B.x = it.x + nx * reach; B.z = it.z + nz * reach;
     const vn = B.vx * nx + B.vz * nz;
@@ -1974,7 +1904,7 @@ function updateRoll(dt) {
   }
   spawnMore(dt);
   updateParty(dt);
-  if (H.party > 0) for (const it of H.items) if (!it.taken && !it.boss && Math.abs(it.x - B.x) < 30 + B.r * 6 && Math.abs(it.z - B.z) < 30 + B.r * 6 && !H.movers.some(m => m.it === it)) it.g.position.y = Math.abs(Math.sin(H.partyT * 9 + it.x * 1.3)) * .25 * it.s;
+  if (H.party > 0) for (const it of H.items) if (!it.taken && Math.abs(it.x - B.x) < 30 + B.r * 6 && Math.abs(it.z - B.z) < 30 + B.r * 6 && !H.movers.some(m => m.it === it)) it.g.position.y = Math.abs(Math.sin(H.partyT * 9 + it.x * 1.3)) * .25 * it.s;
   // ball visuals
   if (sp > .01) {
     _axis.set(B.vz, 0, -B.vx).normalize(); _q.setFromAxisAngle(_axis, sp * dt / B.r); BALL.roll.quaternion.premultiply(_q);
@@ -1990,17 +1920,6 @@ function updateRoll(dt) {
   camera.lookAt(B.x, R * .5, B.z);
   if (shake > 0) { shake -= dt; camera.position.x += rand(-1, 1) * shake * R * .5; camera.position.y += rand(-1, 1) * shake * R * .5; }
   updateGoal();
-}
-// the boss bonks you away and knocks a few things off your ball
-function bossHit(it, nx, nz, reach) {
-  B.x = it.x + nx * reach; B.z = it.z + nz * reach;
-  const k = 7 + B.r * 3; B.vx = nx * k; B.vz = nz * k;
-  if (H.hitT > 0) return;
-  H.hitT = 1.4; shake = .5; SFX.bonk(); SFX.boing();
-  for (let i = 0; i < 3 && BALL.stuck.length; i++) BALL.roll.remove(BALL.stuck.pop());
-  burst(B.x, B.r * 1.4, B.z, B.r * .8);
-  B.r = Math.max(H.st.r0, B.r * .97);
-  toast('BONK!<small>The boss knocked stuff off you! Get bigger, then eat the boss.</small>', 1.6, 'danger');
 }
 function placeBall() {
   const R = B.vr || B.r;
@@ -2050,9 +1969,6 @@ function setStageHud() {
   $('#lvl').textContent = sub(`${stageIx + 1}/${STAGES.length} · ${st.name}`);
   $('#hint').innerHTML = sub(st.hint);
   $('#goalText').textContent = `Grow to ${sizeText(st.rEnd * 2 * st.U)} to eat ${st.eat}!`;
-  const bp = $('#bossPill'), bo = BOSSES[st.key];
-  bp.hidden = !bo; bp.classList.remove('done');
-  if (bo) bp.textContent = sub(`BOSS: ${bo.name}. Grow to ${sizeText(st.rEnd * .5 / .85 * 2 * st.U)} to eat it!`);
   updateGoal();
 }
 
@@ -2106,19 +2022,31 @@ function startFinale() {
   setState('finale'); playSong(null); clearBubbles(); clearParts();
   scene.remove(world); world = new THREE.Group(); scene.add(world);
   while (BALL.stuck.length > 60) BALL.roll.remove(BALL.stuck.shift());
-  Object.assign(B, { x: 0, z: 0, face: 0 });
-  Z = { steps: STAGES.map((_, i) => STAGES.length - 1 - i), i: -1, t: 0, wait: 1.8, cur: null };
-  toast('...uh oh.<small>You ate EVERYTHING. Now you are shrinking!</small>', 1.8);
-  SFX.bleh();
+  Object.assign(B, { x: 0, z: 0, face: 0 }); placeBall();
+  camera.position.set(0, (5 + B.r * 3.2) * camMul, (7 + B.r * 3.6) * camMul); camera.lookAt(0, B.r * .5, 0);
+  Z = { steps: STAGES.map((_, i) => STAGES.length - 1 - i), i: -1, t: 0, wait: 3.6, cur: null, uhoh: false };
+  toast('YOU ATE THE WHOLE UNIVERSE!!!', 1.9); SFX.fanfare(); setTimeout(() => { if (state === 'finale') SFX.fanfare(); }, 450);
 }
+function flash() { const f = $('#flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); }
 function updateZoom(dt) {
   BALL.root.rotation.y += dt * 3;
-  if (Z.wait > 0) { Z.wait -= dt; if (Z.wait <= 0) { $('#pow').hidden = false; nextZoom(); } return; }
+  if (Z.wait > 0) {
+    Z.wait -= dt;
+    if (Z.wait > 1.7) {
+      // fireworks all around the ball
+      if (Math.random() < dt * 10) { const a = rand(0, 6.28), r = B.r * rand(1.5, 4); burst(Math.sin(a) * r, B.r * rand(1, 3), Math.cos(a) * r, B.r * .9, [pick(BRIGHT), pick(BRIGHT), '#ffffff']); SFX.pop(rand(.8, 1.6)); }
+    } else if (!Z.uhoh) {
+      Z.uhoh = true; SFX.bleh();
+      toast("...uh oh.<small>There's nothing left to eat. You're SHRINKING!</small>", 1.7);
+    }
+    if (Z.wait <= 0) { $('#pow').hidden = false; nextZoom(); }
+    return;
+  }
   Z.t += dt;
-  const p = Math.min(1, Z.t / 1.1), e = p * p * (3 - 2 * p);
+  const p = Math.min(1, Z.t / .85), e = p * p * (3 - 2 * p);
   setBallR(Z.r0 * Math.pow(Z.r1 / Z.r0, e));
   if (p < 1 && Math.random() < dt * 14) burst(rand(-1, 1) * B.r, B.r * 1.6, rand(-1, 1) * B.r, B.r * .6);
-  if (p >= 1) { Z.hold = (Z.hold || 0) + dt; if (Z.hold > .2) { Z.hold = 0; nextZoom(); } }
+  if (p >= 1) { Z.hold = (Z.hold || 0) + dt; if (Z.hold > .1) { Z.hold = 0; nextZoom(); } }
 }
 function nextZoom() {
   Z.i++;
@@ -2132,15 +2060,14 @@ function nextZoom() {
   const rc = Math.sqrt(st.rEnd * st.r0) * 1.2;
   camera.position.set(0, (5 + rc * 3.2) * camMul, (7 + rc * 3.6) * camMul); camera.lookAt(0, rc * .45, 0);
   $('#pow').innerHTML = `Shrinking...<small>${sub(st.name)}</small>`;
-  Z.t = 0; SFX.whoosh();
+  Z.t = 0; SFX.whoosh(); flash();
 }
 const _from = new V3(2, 60, 50), _to = new V3(4.4, 3.4, 24.4), _green = new THREE.Color('#9be37a'), _skin = new THREE.Color('#ffd1a8');
 function mouthSize(u, x, y) { u.mouth.scale.set(.4 * x, .1 * y, .05); }
 function landInStore() {
-  Z = null; dropBall(); scene.background = new THREE.Color('#8fd8ff');
+  Z = null; flash(); dropBall(); scene.background = new THREE.Color('#8fd8ff');
   buildStore();
   for (const w of S.W) { w.cone.visible = false; w.mark.visible = false; }
-  if (S.dog) S.dog.ring.visible = false;
   for (const k of S.kits) world.remove(k.g); S.kits = [];
   setState('spit'); $('#pow').hidden = false; $('#pow').innerHTML = sub('Phew!<small>Back to banana size.</small>');
   SFX.boing(); playSong('store');
@@ -2225,14 +2152,27 @@ function updateSpit(dt) {
     if (w > 3.4) { s.phase = 6; winGame(); }
   }
 }
+function skipEnding() {
+  if (state !== 'finale' && state !== 'spit') return;
+  if (state === 'finale') { if (Z && Z.cur) scene.remove(Z.cur.grp); Z = null; dropBall(); scene.background = new THREE.Color('#8fd8ff'); buildStore(); }
+  SP = null; clearBubbles(); $('#toast').hidden = true; winGame();
+}
+$('#skipBtn').addEventListener('click', skipEnding);
+function goTitle() {
+  Z = null; SP = null; RD = null; trans = null; dropBall(); clearParts(); HEMI.color.set('#eaf8ff');
+  scene.background = new THREE.Color('#8fd8ff'); buildStore(); setState('title'); playSong(null);
+}
 function winGame() {
   const firstWin = eatenCount() < STAGES.length;
   try { localStorage.setItem('bs-won', '1'); } catch (e) {}
   setState('end'); playSong(null); SFX.fanfare(); setTimeout(() => SFX.fanfare(), 500);
-  $('#stSize').textContent = 'ALL';
   $('#pow').hidden = true; $('#stCount').textContent = totals.eaten; $('#stChaos').textContent = `${STAGES.length}/${STAGES.length}`;
-  const best = [...new Set(totals.big)].slice(-6).reverse();
-  $('#stList').textContent = (best.length ? `Best snacks: ${best.join(', ')}. ` : '') + 'Then someone tried to eat YOU. Ptooey!' + (firstWin ? ' You unlocked the Halo!' : '');
+  const [got, all] = bookTotals(); $('#stStickers').textContent = `${got}/${all}`;
+  $('#endStory').textContent = sub('Then you shrank all the way back down to banana size... and somebody tried to eat you. PTOOEY!');
+  const best = [...new Set(totals.big)].slice(-5).reverse();
+  $('#stList').textContent = (best.length ? `Best snacks: ${best.join(', ')}.` : '') + (firstWin ? ' You unlocked the Halo!' : '');
+  try { $('#endPortrait').src = snap(makeFood(foodKey, true), .35); } catch (e) {}
+  $('#confetti').innerHTML = Array.from({ length: 40 }, () => `<i style="left:${rand(0, 100).toFixed(1)}%;background:${pick(BRIGHT)};animation-duration:${rand(2.5, 5).toFixed(2)}s;animation-delay:${rand(-5, 0).toFixed(2)}s"></i>`).join('');
   setTimeout(() => $('#againBtn').focus(), 50);
 }
 /* ---------- flow ---------- */
@@ -2258,10 +2198,10 @@ function setState(s) {
   fBtn.hidden = !(isTouch && (s === 'store' || s === 'scan' || s === 'ride'));
   $('#peelBtn').hidden = !(isTouch && s === 'store');
   if (s !== 'store') { $('#pa').hidden = true; $('#disgPill').hidden = true; }
+  $('#skipBtn').hidden = !(s === 'finale' || s === 'spit');
   if (s !== 'store' && s !== 'roll') { joy.x = joy.y = 0; joy.id = null; knob.style.transform = ''; }
   if (!play) { $('#toast').hidden = true; toastT = 0; }
   if (s === 'title') { syncContinue(); renderHats(); }
-  if (s !== 'roll') $('#bossPill').hidden = true;
 }
 function startStore() {
   HEMI.color.set('#eaf8ff');
@@ -2350,25 +2290,26 @@ $('#hats').addEventListener('click', e => {
 function bookEntries(st) {
   const seen = new Set(), out = [];
   for (const d of st.things) if (!seen.has(d.name)) { seen.add(d.name); out.push({ d, name: d.name, rare: d.count === 1 }); }
-  const bo = BOSSES[st.key]; if (bo) out.push({ d: { name: bo.name, s: 1, build: bo.build, unit: true }, name: bo.name, boss: true });
   return out;
 }
 const THUMBS = {};
 let TR = null;
-function thumb(st, e) {
-  const key = st.key + ':' + e.name + ':' + foodKey;
-  if (THUMBS[key]) return THUMBS[key];
+function snap(obj, turn) {
   if (!TR) {
     const r = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true }); r.setPixelRatio(1); r.setSize(168, 168);
     const sc = new THREE.Scene(); sc.add(new THREE.HemisphereLight('#ffffff', '#ffcf9a', .95)); const l = new THREE.DirectionalLight('#ffffff', .6); l.position.set(3, 5, 4); sc.add(l);
     TR = { r, sc, cam: new THREE.PerspectiveCamera(30, 1, .01, 2000) };
   }
-  const g = makeThing(e.d, e.d.unit ? 1 : baseS(e.d)); g.rotation.y = .5; TR.sc.add(g);
-  const box = new THREE.Box3().setFromObject(g), c = box.getCenter(new V3()), z = Math.max(.01, box.getSize(new V3()).length());
+  obj.rotation.y = turn; TR.sc.add(obj);
+  const box = new THREE.Box3().setFromObject(obj), c = box.getCenter(new V3()), z = Math.max(.01, box.getSize(new V3()).length());
   TR.cam.position.set(c.x + z * .9, c.y + z * .7, c.z + z * 1.45); TR.cam.lookAt(c);
   TR.r.render(TR.sc, TR.cam);
-  const url = TR.r.domElement.toDataURL('image/png'); TR.sc.remove(g);
-  return (THUMBS[key] = url);
+  const url = TR.r.domElement.toDataURL('image/png'); TR.sc.remove(obj);
+  return url;
+}
+function thumb(st, e) {
+  const key = st.key + ':' + e.name + ':' + foodKey;
+  return THUMBS[key] || (THUMBS[key] = snap(makeThing(e.d, e.d.unit ? 1 : baseS(e.d)), .5));
 }
 let bookTab = 0, bookJob = 0, bookFrom = null;
 function bookTotals() {
@@ -2391,7 +2332,7 @@ function renderBook() {
   const st = STAGES[bookTab], es = bookEntries(st), job = ++bookJob;
   const blank = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
   $('#stickers').innerHTML = es.map((e, i) => {
-    const n = BOOK[st.key + ':' + e.name] || 0, cls = ['sticker', n ? '' : 'locked', e.boss ? 'boss' : e.rare ? 'rare' : ''].join(' ');
+    const n = BOOK[st.key + ':' + e.name] || 0, cls = ['sticker', n ? '' : 'locked', e.rare ? 'rare' : ''].join(' ');
     return `<figure class="${cls}" style="--tilt:${((i * 37) % 7) - 3}deg"><img src="${blank}" alt="" data-i="${i}"><figcaption>${n ? sub(e.name) : '???'}${n ? `<span>× ${n}</span>` : ''}</figcaption></figure>`;
   }).join('');
   const imgs = [...$('#stickers').querySelectorAll('img')];
@@ -2406,6 +2347,7 @@ function renderBook() {
 $('#bookTabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (!b) return; bookTab = +b.dataset.tab; renderBook(); $('#bookTabs').querySelector(`[data-tab="${bookTab}"]`).focus(); });
 $('#bookBtn').addEventListener('click', e => { initAudio(); openBook(e.currentTarget); });
 $('#bookBtn2').addEventListener('click', e => { initAudio(); openBook(e.currentTarget); });
+$('#worldsBtn').addEventListener('click', () => { initAudio(); goTitle(); });
 $('#bookClose').addEventListener('click', closeBook);
 addEventListener('keydown', e => { if (e.code === 'Escape' && !$('#bookScreen').hidden) closeBook(); });
 
@@ -2426,7 +2368,7 @@ function frame(t) {
   else if (state === 'scan') updateScan(dt);
   else if (state === 'roll') { if (trans) updateTransition(dt); else updateRoll(dt); }
   else if (state === 'finale') updateZoom(dt);
-  else if (state === 'spit') updateSpit(dt);
+  else if (state === 'spit') { if (SP) updateSpit(dt); }
   else if (state === 'ride') { if (RD) updateRide(dt); }
   if (toastT > 0) { toastT -= dt; if (toastT <= 0) $('#toast').hidden = true; }
   updBubbles(dt); updParts(dt);
